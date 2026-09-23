@@ -24,12 +24,20 @@ export async function POST(req: NextRequest) {
     const resetUrl = `${siteConfig.url}/admin/redefinir-senha?token=${result.token}`;
 
     try {
-      await sendEmail({
+      const sent = await sendEmail({
         to: result.user.email,
         subject: `${siteConfig.name} — recuperação de senha`,
         html: passwordResetEmailHtml(resetUrl),
         text: `Redefina sua senha neste link (válido por 1 hora): ${resetUrl}`,
       });
+
+      if (sent.provider === "formsubmit-activation") {
+        return NextResponse.json({
+          ok: true,
+          message:
+            "Enviamos um e-mail de ativação para antonio.ptp2011@gmail.com. Abra a caixa de entrada, clique em Activate Form e solicite a recuperação novamente para receber o link de senha.",
+        });
+      }
     } catch (err) {
       console.error("[forgot-password] e-mail falhou:", err);
       // Em desenvolvimento, ainda devolve o link para não bloquear o admin.
@@ -48,7 +56,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           error:
-            "Não foi possível enviar o e-mail de recuperação. Verifique RESEND_API_KEY na Vercel.",
+            "Não foi possível enviar o e-mail de recuperação. Tente novamente em instantes.",
         },
         { status: 503 }
       );

@@ -41,25 +41,47 @@ export async function sendEmail(input: SendEmailInput): Promise<{ ok: true; prov
     return { ok: true, provider: "resend" };
   }
 
-  // Fallback sem API key — envia para o próprio destinatário via FormSubmit
+  const origin = siteConfig.url.replace(/\/$/, "");
   const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(input.to)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      Origin: origin,
+      Referer: `${origin}/admin/recuperar-senha`,
     },
     body: JSON.stringify({
       _subject: input.subject,
       _template: "box",
+      _captcha: "false",
       message: input.text || input.html.replace(/<[^>]+>/g, " "),
-      html: input.html,
+      link: input.text?.match(/https?:\/\/\S+/)?.[0] || "",
       site: siteConfig.name,
     }),
   });
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Falha ao enviar e-mail (FormSubmit): ${detail || res.status}`);
+  const raw = await res.text().catch(() => "");
+  let parsed: { success?: string | boolean; message?: string } = {};
+  try {
+    parsed = JSON.parse(raw) as typeof parsed;
+  } catch {
+    parsed = {};
+  }
+
+  const okFlag = parsed.success === true || parsed.success === "true";
+  const activationPending =
+    typeof parsed.message === "string" &&
+    /activat/i.test(parsed.message);
+
+  // 1ª vez: FormSubmit envia e-mail de ativação — ainda é entrega real na caixa.
+  if (activationPending) {
+    return { ok: true, provider: "formsubmit-activation" };
+  }
+
+  if (!res.ok || (parsed.success !== undefined && !okFlag)) {
+    throw new Error(
+      `Falha ao enviar e-mail (FormSubmit): ${parsed.message || raw || res.status}`
+    );
   }
 
   return { ok: true, provider: "formsubmit" };

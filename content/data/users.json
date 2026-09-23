@@ -1,0 +1,14 @@
+[
+  {
+    "id": "user-admin-1",
+    "username": "antonio.ptp2011@gmail.com",
+    "email": "antonio.ptp2011@gmail.com",
+    "name": "Administrador",
+    "role": "admin",
+    "passwordHash": "$2b$10$i979gQKDVOMgIfY99WQ/s..ulLYuflYpjuSQAS4ngEJTiaSm5XJiW",
+    "mustChangePassword": false,
+    "active": true,
+    "createdAt": "2026-09-23T17:00:00.000Z",
+    "updatedAt": "2026-09-23T17:00:00.000Z"
+  }
+]

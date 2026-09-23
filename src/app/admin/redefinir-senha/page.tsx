@@ -44,11 +44,11 @@ function ResetForm() {
       <form className="admin-form" onSubmit={onSubmit}>
         <label>
           Nova senha
-          <input name="newPassword" type="password" required minLength={10} />
+          <input name="newPassword" type="password" required minLength={8} />
         </label>
         <label>
           Confirmar
-          <input name="confirm" type="password" required minLength={10} />
+          <input name="confirm" type="password" required minLength={8} />
         </label>
         {error && <p style={{ color: "#b42318" }}>{error}</p>}
         <button className="btn btn--primary" type="submit" disabled={loading || !token}>

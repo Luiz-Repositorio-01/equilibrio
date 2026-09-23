@@ -17,10 +17,11 @@ Abra: [http://localhost:3000](http://localhost:3000)
 ## Login do CMS (admin)
 
 - URL local: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-- Usuário: `admin`
-- Senha: `Equilibrio@2026`
+- Usuário / e-mail: `antonio.ptp2011@gmail.com`
+- Senha: a definida em `ADMIN_PASSWORD` (Vercel / `.env.local`)
 
 Em produção, configure as mesmas variáveis no painel da Vercel (veja `.env.example`).
+Para recuperação de senha por e-mail, configure também `RESEND_API_KEY`.
 
 ## Deploy automático (GitHub → Vercel)
 

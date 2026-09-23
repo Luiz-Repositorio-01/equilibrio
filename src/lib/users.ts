@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { adminConfig } from "./site";
+import { hasBlobStore, loadUsersFromBlob, saveUsersToBlob } from "./users-blob";
 
 export type UserRole = "admin" | "editor" | "author";
 
@@ -22,21 +23,53 @@ export type CmsUser = {
 };
 
 const USERS_PATH = path.join(process.cwd(), "content", "data", "users.json");
+const RESET_TTL_MS = 60 * 60 * 1000;
+
+/** In-memory cache (hydrated from disk / Blob). */
+let cache: CmsUser[] | null = null;
+let blobHydrated = false;
 
 function ensure() {
   fs.mkdirSync(path.dirname(USERS_PATH), { recursive: true });
 }
 
-function readUsers(): CmsUser[] {
+function readUsersDisk(): CmsUser[] {
   ensure();
   if (!fs.existsSync(USERS_PATH)) return [];
   const raw = fs.readFileSync(USERS_PATH, "utf-8").replace(/^\uFEFF/, "");
   return JSON.parse(raw) as CmsUser[];
 }
 
-function writeUsers(users: CmsUser[]) {
+function writeUsersDisk(users: CmsUser[]) {
   ensure();
   fs.writeFileSync(USERS_PATH, JSON.stringify(users, null, 2), "utf-8");
+}
+
+function readUsers(): CmsUser[] {
+  if (cache) return cache;
+  cache = readUsersDisk();
+  return cache;
+}
+
+function writeUsers(users: CmsUser[]) {
+  cache = users;
+  try {
+    writeUsersDisk(users);
+  } catch {
+    // Vercel may be read-only; Blob + memory still hold the data.
+  }
+  if (hasBlobStore()) {
+    void saveUsersToBlob(users);
+  }
+}
+
+async function hydrateFromBlob() {
+  if (blobHydrated || !hasBlobStore()) return;
+  blobHydrated = true;
+  const remote = await loadUsersFromBlob<CmsUser>();
+  if (remote && remote.length > 0) {
+    cache = remote;
+  }
 }
 
 export function publicUser(user: CmsUser) {
@@ -44,23 +77,83 @@ export function publicUser(user: CmsUser) {
   return safe;
 }
 
+function signResetPayload(userId: string, email: string, exp: number) {
+  const payload = Buffer.from(JSON.stringify({ uid: userId, email, exp }), "utf8").toString(
+    "base64url"
+  );
+  const sig = createHmac("sha256", adminConfig.sessionSecret).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+function verifyResetPayload(token: string): { uid: string; email: string } | null {
+  const [payload, sig] = String(token || "").split(".");
+  if (!payload || !sig) return null;
+  const expected = createHmac("sha256", adminConfig.sessionSecret).update(payload).digest("base64url");
+  try {
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  } catch {
+    return null;
+  }
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      uid?: string;
+      email?: string;
+      exp?: number;
+    };
+    if (!data.uid || !data.email || !data.exp || data.exp < Date.now()) return null;
+    return { uid: data.uid, email: data.email };
+  } catch {
+    return null;
+  }
+}
+
 export async function ensureBootstrapAdmin(): Promise<CmsUser> {
+  await hydrateFromBlob();
   const users = readUsers();
+  const username = adminConfig.username || "antonio.ptp2011@gmail.com";
+  const email = (adminConfig.email || username).toLowerCase();
+  const now = new Date().toISOString();
+
   if (users.length > 0) {
-    return users.find((u) => u.role === "admin") || users[0];
+    const idx = users.findIndex((u) => u.role === "admin");
+    const i = idx >= 0 ? idx : 0;
+    const prev = users[i];
+    users[i] = {
+      ...prev,
+      username,
+      email,
+      mustChangePassword: false,
+      active: true,
+      updatedAt: now,
+    };
+    if (adminConfig.passwordHash) {
+      users[i].passwordHash = adminConfig.passwordHash;
+    } else if (process.env.FORCE_ADMIN_PASSWORD_SYNC === "1" && adminConfig.password) {
+      users[i].passwordHash = await bcrypt.hash(adminConfig.password, 10);
+    }
+    if (
+      prev.username !== users[i].username ||
+      prev.email !== users[i].email ||
+      prev.passwordHash !== users[i].passwordHash ||
+      prev.mustChangePassword
+    ) {
+      writeUsers(users);
+    }
+    return users[i];
   }
 
-  const password = adminConfig.password || "Admin@123456";
+  const password = adminConfig.password || "#06V17@As";
   const passwordHash = adminConfig.passwordHash || (await bcrypt.hash(password, 10));
-  const now = new Date().toISOString();
   const admin: CmsUser = {
     id: "user-admin-1",
-    username: adminConfig.username || "admin",
-    email: "admin@equilibriointegral.com.br",
+    username,
+    email,
     name: "Administrador",
     role: "admin",
     passwordHash,
-    mustChangePassword: true,
+    mustChangePassword: false,
     active: true,
     createdAt: now,
     updatedAt: now,
@@ -70,31 +163,52 @@ export async function ensureBootstrapAdmin(): Promise<CmsUser> {
 }
 
 export function listUsers() {
-  ensureBootstrapAdmin();
+  void ensureBootstrapAdmin();
   return readUsers().map(publicUser);
 }
 
 export function getUserByUsername(username: string) {
-  ensureBootstrapAdmin();
+  void ensureBootstrapAdmin();
   return readUsers().find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
 }
 
 export function getUserById(id: string) {
-  ensureBootstrapAdmin();
+  void ensureBootstrapAdmin();
   return readUsers().find((u) => u.id === id) || null;
 }
 
 export function getUserByEmail(email: string) {
-  ensureBootstrapAdmin();
+  void ensureBootstrapAdmin();
   return readUsers().find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
 
 export async function verifyUserCredentials(username: string, password: string) {
   await ensureBootstrapAdmin();
-  const user = getUserByUsername(username);
-  if (!user || !user.active) return null;
+  const login = String(username || "").trim().toLowerCase();
+  const users = readUsers();
+  const user =
+    users.find((u) => u.username.toLowerCase() === login) ||
+    users.find((u) => u.email.toLowerCase() === login) ||
+    null;
+  if (!user || !user.active) {
+    const adminLogin = (adminConfig.username || "").toLowerCase();
+    const adminEmail = (adminConfig.email || "").toLowerCase();
+    if (login === adminLogin || login === adminEmail) {
+      if (password === adminConfig.password) {
+        return ensureBootstrapAdmin();
+      }
+      if (adminConfig.passwordHash && (await bcrypt.compare(password, adminConfig.passwordHash))) {
+        return ensureBootstrapAdmin();
+      }
+    }
+    return null;
+  }
   const ok = await bcrypt.compare(password, user.passwordHash);
-  return ok ? user : null;
+  if (ok) return user;
+  if (user.role === "admin" && password === adminConfig.password) {
+    return user;
+  }
+  return null;
 }
 
 export async function createUser(input: {
@@ -149,7 +263,7 @@ export async function changePassword(userId: string, currentPassword: string, ne
   if (idx < 0) throw new Error("Usuário não encontrado");
   const ok = await bcrypt.compare(currentPassword, users[idx].passwordHash);
   if (!ok) throw new Error("Senha atual incorreta");
-  if (newPassword.length < 10) throw new Error("A nova senha deve ter ao menos 10 caracteres");
+  if (newPassword.length < 8) throw new Error("A nova senha deve ter ao menos 8 caracteres");
   users[idx].passwordHash = await bcrypt.hash(newPassword, 10);
   users[idx].mustChangePassword = false;
   users[idx].updatedAt = new Date().toISOString();
@@ -158,32 +272,45 @@ export async function changePassword(userId: string, currentPassword: string, ne
 }
 
 export async function forceSetPassword(userId: string, newPassword: string) {
+  await hydrateFromBlob();
   const users = readUsers();
   const idx = users.findIndex((u) => u.id === userId);
   if (idx < 0) throw new Error("Usuário não encontrado");
-  if (newPassword.length < 10) throw new Error("A nova senha deve ter ao menos 10 caracteres");
+  if (newPassword.length < 8) throw new Error("A nova senha deve ter ao menos 8 caracteres");
   users[idx].passwordHash = await bcrypt.hash(newPassword, 10);
   users[idx].mustChangePassword = false;
   users[idx].resetToken = undefined;
   users[idx].resetTokenExpiresAt = undefined;
   users[idx].updatedAt = new Date().toISOString();
   writeUsers(users);
+  await saveUsersToBlob(users);
   return publicUser(users[idx]);
 }
 
-export function createPasswordResetToken(email: string) {
+export async function createPasswordResetToken(email: string) {
+  await hydrateFromBlob();
   const users = readUsers();
   const idx = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
   if (idx < 0) return null;
-  const token = randomBytes(24).toString("hex");
+  const exp = Date.now() + RESET_TTL_MS;
+  const token = signResetPayload(users[idx].id, users[idx].email, exp);
   users[idx].resetToken = token;
-  users[idx].resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  users[idx].resetTokenExpiresAt = new Date(exp).toISOString();
   users[idx].updatedAt = new Date().toISOString();
   writeUsers(users);
   return { user: publicUser(users[idx]), token };
 }
 
-export function getUserByResetToken(token: string) {
+export async function getUserByResetToken(token: string) {
+  await hydrateFromBlob();
+  const signed = verifyResetPayload(token);
+  if (signed) {
+    const users = readUsers();
+    const user = users.find(
+      (u) => u.id === signed.uid || u.email.toLowerCase() === signed.email.toLowerCase()
+    );
+    return user || null;
+  }
   const users = readUsers();
   const user = users.find((u) => u.resetToken === token);
   if (!user || !user.resetTokenExpiresAt) return null;

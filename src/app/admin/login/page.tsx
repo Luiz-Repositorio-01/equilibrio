@@ -48,8 +48,13 @@ export default function AdminLoginPage() {
         </p>
         <form className="admin-form" onSubmit={onSubmit}>
           <label>
-            Usuário
-            <input name="username" autoComplete="username" required defaultValue="admin" />
+            Usuário ou e-mail
+            <input
+              name="username"
+              autoComplete="username"
+              required
+              defaultValue="antonio.ptp2011@gmail.com"
+            />
           </label>
           <label>
             Senha

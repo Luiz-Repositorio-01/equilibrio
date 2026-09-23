@@ -72,9 +72,10 @@ export const analyticsConfig = {
 };
 
 export const adminConfig = {
-  username: process.env.ADMIN_USERNAME || "admin",
+  username: process.env.ADMIN_USERNAME || "antonio.ptp2011@gmail.com",
+  email: process.env.ADMIN_EMAIL || "antonio.ptp2011@gmail.com",
   /** Default password — change via ADMIN_PASSWORD_HASH or ADMIN_PASSWORD in production */
-  password: process.env.ADMIN_PASSWORD || "Equilibrio@2026",
+  password: process.env.ADMIN_PASSWORD || "#06V17@As",
   passwordHash: process.env.ADMIN_PASSWORD_HASH || "",
   sessionSecret: process.env.ADMIN_SESSION_SECRET || "equilibrio-integral-cms-secret-change-me",
   sessionCookie: "ei_admin_session",

@@ -30,7 +30,8 @@ export default function ForgotPasswordPage() {
       <div className="login-card">
         <h1 style={{ fontFamily: "var(--font-serif)", marginTop: 0 }}>Recuperar senha</h1>
         <p style={{ color: "var(--text-muted)" }}>
-          Informe o e-mail do administrador. Em desenvolvimento o link aparece abaixo.
+          Informe o e-mail do administrador. Enviaremos um link real para redefinir a senha.
+          Na primeira solicitação, confirme o ativador do FormSubmit na caixa de entrada.
         </p>
         <form className="admin-form" onSubmit={onSubmit}>
           <label>
@@ -39,11 +40,11 @@ export default function ForgotPasswordPage() {
               name="email"
               type="email"
               required
-              defaultValue="admin@equilibriointegral.com.br"
+              defaultValue="antonio.ptp2011@gmail.com"
             />
           </label>
           <button className="btn btn--primary" type="submit" disabled={loading}>
-            {loading ? "Gerando..." : "Gerar link de recuperação"}
+            {loading ? "Enviando..." : "Enviar link de recuperação"}
           </button>
         </form>
         {message && <p style={{ marginTop: "1rem" }}>{message}</p>}

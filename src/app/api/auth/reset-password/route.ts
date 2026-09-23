@@ -4,7 +4,7 @@ import { forceSetPassword, getUserByResetToken } from "@/lib/users";
 export async function POST(req: NextRequest) {
   try {
     const { token, newPassword } = await req.json();
-    const user = getUserByResetToken(String(token || ""));
+    const user = await getUserByResetToken(String(token || ""));
     if (!user) {
       return NextResponse.json({ error: "Token inválido ou expirado" }, { status: 400 });
     }

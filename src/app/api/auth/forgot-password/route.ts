@@ -4,7 +4,9 @@ import { siteConfig } from "@/lib/site";
 import { passwordResetEmailHtml, sendEmail } from "@/lib/mail";
 
 /**
- * Gera token de recuperação e envia e-mail real (Resend).
+ * Gera token de recuperação e envia e-mail.
+ * Preferência: Resend. Fallback: entrega via navegador (FormSubmit),
+ * porque o FormSubmit bloqueia IPs da Vercel com Cloudflare.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +14,6 @@ export async function POST(req: NextRequest) {
     const { email } = await req.json();
     const result = await createPasswordResetToken(String(email || ""));
 
-    // Always same response to avoid user enumeration
     const base = {
       ok: true,
       message:
@@ -21,49 +22,46 @@ export async function POST(req: NextRequest) {
 
     if (!result) return NextResponse.json(base);
 
-    const resetUrl = `${siteConfig.url}/admin/redefinir-senha?token=${result.token}`;
+    const resetUrl = `${siteConfig.url}/admin/redefinir-senha?token=${encodeURIComponent(result.token)}`;
+    const text = `Redefina sua senha neste link (válido por 1 hora): ${resetUrl}`;
+    const subject = `${siteConfig.name} — recuperação de senha`;
 
-    try {
-      const sent = await sendEmail({
-        to: result.user.email,
-        subject: `${siteConfig.name} — recuperação de senha`,
-        html: passwordResetEmailHtml(resetUrl),
-        text: `Redefina sua senha neste link (válido por 1 hora): ${resetUrl}`,
-      });
-
-      if (sent.provider === "formsubmit-activation") {
-        return NextResponse.json({
-          ok: true,
-          message:
-            "Enviamos um e-mail de ativação para antonio.ptp2011@gmail.com. Abra a caixa de entrada, clique em Activate Form e solicite a recuperação novamente para receber o link de senha.",
+    if (process.env.RESEND_API_KEY?.trim()) {
+      try {
+        await sendEmail({
+          to: result.user.email,
+          subject,
+          html: passwordResetEmailHtml(resetUrl),
+          text,
         });
+        return NextResponse.json(base);
+      } catch (err) {
+        console.error("[forgot-password] Resend falhou:", err);
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Falha ao enviar e-mail de recuperação.",
+          },
+          { status: 503 }
+        );
       }
-    } catch (err) {
-      console.error("[forgot-password] e-mail falhou:", err);
-      // Em desenvolvimento, ainda devolve o link para não bloquear o admin.
-      if (process.env.NODE_ENV !== "production" || process.env.EXPOSE_RESET_TOKEN === "1") {
-        return NextResponse.json({
-          ...base,
-          resetUrl,
-          token: result.token,
-          warning:
-            err instanceof Error
-              ? err.message
-              : "Falha no envio de e-mail. Token exposto apenas fora de produção.",
-        });
-      }
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Não foi possível enviar o e-mail de recuperação. Tente novamente em instantes.",
-          detail: err instanceof Error ? err.message : String(err),
-        },
-        { status: 503 }
-      );
     }
 
-    return NextResponse.json(base);
+    // Sem Resend: o front envia pelo navegador (passa no Cloudflare do FormSubmit)
+    return NextResponse.json({
+      ok: true,
+      message:
+        "Prepare o envio do e-mail de recuperação. Se for a primeira vez, confirme o Activate Form na caixa de entrada e tente de novo.",
+      browserDelivery: {
+        to: result.user.email,
+        subject,
+        message: text,
+        link: resetUrl,
+      },
+    });
   } catch (e) {
     console.error("[forgot-password] erro:", e);
     return NextResponse.json(

@@ -7,96 +7,40 @@ type SendEmailInput = {
   text?: string;
 };
 
-export type SendEmailResult = {
-  ok: true;
-  provider: string;
-  note?: string;
-};
-
 /**
- * Envia e-mail real:
- * 1) Resend (se RESEND_API_KEY existir)
- * 2) FormSubmit para o e-mail de destino (sem API key; 1ª vez exige confirmação no e-mail)
+ * Envio server-side via Resend (quando RESEND_API_KEY estiver na Vercel).
+ * Sem a chave, a recuperação usa envio pelo navegador (FormSubmit) na página.
  */
-export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
+export async function sendEmail(input: SendEmailInput): Promise<{ ok: true; provider: string }> {
   const resendKey = process.env.RESEND_API_KEY?.trim();
-  if (resendKey) {
-    const from =
-      process.env.MAIL_FROM?.trim() || "SAÚDE INTEGRAL <onboarding@resend.dev>";
-
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [input.to],
-        subject: input.subject,
-        html: input.html,
-        text: input.text,
-      }),
-    });
-
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      throw new Error(`Falha ao enviar e-mail (Resend): ${detail || res.status}`);
-    }
-
-    return { ok: true, provider: "resend" };
+  if (!resendKey) {
+    throw new Error("RESEND_API_KEY não configurada");
   }
 
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url).replace(/\/$/, "");
-  const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(input.to)}`;
+  const from =
+    process.env.MAIL_FROM?.trim() || "SAÚDE INTEGRAL <onboarding@resend.dev>";
 
-  const res = await fetch(endpoint, {
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json",
-      Accept: "application/json",
-      Origin: origin,
-      Referer: `${origin}/admin/recuperar-senha`,
-      "User-Agent":
-        "Mozilla/5.0 (compatible; SaudeIntegralCMS/1.0; +https://www.equilibriointegral.com.br)",
     },
     body: JSON.stringify({
-      _subject: input.subject,
-      _template: "box",
-      _captcha: "false",
-      message: input.text || input.html.replace(/<[^>]+>/g, " "),
-      link: input.text?.match(/https?:\/\/\S+/)?.[0] || "",
-      site: siteConfig.name,
+      from,
+      to: [input.to],
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
     }),
   });
 
-  const raw = await res.text().catch(() => "");
-  console.info("[mail] FormSubmit status=", res.status, "body=", raw.slice(0, 500));
-
-  let parsed: { success?: string | boolean; message?: string } = {};
-  try {
-    parsed = JSON.parse(raw) as typeof parsed;
-  } catch {
-    parsed = {};
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Falha ao enviar e-mail (Resend): ${detail || res.status}`);
   }
 
-  const okFlag = parsed.success === true || parsed.success === "true";
-  const msg = String(parsed.message || raw || "");
-  const activationPending = /activat/i.test(msg);
-
-  if (activationPending) {
-    return {
-      ok: true,
-      provider: "formsubmit-activation",
-      note: msg,
-    };
-  }
-
-  if (okFlag || res.ok) {
-    return { ok: true, provider: "formsubmit" };
-  }
-
-  throw new Error(`Falha ao enviar e-mail (FormSubmit): ${msg || res.status}`);
+  return { ok: true, provider: "resend" };
 }
 
 export function passwordResetEmailHtml(resetUrl: string) {

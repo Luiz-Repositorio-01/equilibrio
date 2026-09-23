@@ -57,13 +57,21 @@ export async function POST(req: NextRequest) {
           ok: false,
           error:
             "Não foi possível enviar o e-mail de recuperação. Tente novamente em instantes.",
+          detail: err instanceof Error ? err.message : String(err),
         },
         { status: 503 }
       );
     }
 
     return NextResponse.json(base);
-  } catch {
-    return NextResponse.json({ error: "Erro ao solicitar recuperação" }, { status: 500 });
+  } catch (e) {
+    console.error("[forgot-password] erro:", e);
+    return NextResponse.json(
+      {
+        error: "Erro ao solicitar recuperação",
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      { status: 500 }
+    );
   }
 }

@@ -23,8 +23,13 @@ function readJson<T>(filePath: string, fallback: T): T {
 }
 
 function writeJson(filePath: string, data: unknown) {
-  ensureDirs();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+  try {
+    ensureDirs();
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+  } catch {
+    // Vercel's production filesystem is read-only; callers still get the
+    // freshly computed in-memory data, only the on-disk cache is skipped.
+  }
 }
 
 function toSummary(article: Article): ArticleSummary {

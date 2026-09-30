@@ -78,8 +78,14 @@ function readJson<T>(fallback: T): T {
 }
 
 function writeJson(data: MonetizationState) {
-  ensureDir();
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), "utf-8");
+  try {
+    ensureDir();
+    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch {
+    // Vercel's production filesystem is read-only; the in-memory state
+    // returned to the caller still reflects the save, only the on-disk
+    // copy is skipped.
+  }
 }
 
 export function getDefaultMonetization(): MonetizationState {

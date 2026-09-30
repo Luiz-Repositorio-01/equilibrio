@@ -6,9 +6,9 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export default async function MonetizacaoHubPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
-  syncSetupProgress();
+  await syncSetupProgress();
   const state = getMonetization();
-  const revenue = getRevenueDashboard();
+  const revenue = await getRevenueDashboard();
   const setupDone = Object.values(state.setup.steps).filter(Boolean).length;
   const setupTotal = Object.keys(state.setup.steps).length;
 

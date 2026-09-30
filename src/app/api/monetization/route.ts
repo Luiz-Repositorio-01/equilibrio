@@ -25,10 +25,10 @@ export async function GET(req: NextRequest) {
   }
   const view = req.nextUrl.searchParams.get("view");
   if (view === "revenue") {
-    return NextResponse.json(getRevenueDashboard());
+    return NextResponse.json(await getRevenueDashboard());
   }
   if (view === "setup") {
-    return NextResponse.json(syncSetupProgress().setup);
+    return NextResponse.json((await syncSetupProgress()).setup);
   }
   return NextResponse.json(getMonetization());
 }
@@ -100,14 +100,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           ok: true,
           revenue: state.revenue,
-          dashboard: getRevenueDashboard(),
+          dashboard: await getRevenueDashboard(),
         });
       }
       case "delete_revenue": {
         const state = deleteRevenueEntry(String(body.id || ""));
         return NextResponse.json({
           ok: true,
-          dashboard: getRevenueDashboard(),
+          dashboard: await getRevenueDashboard(),
           revenue: state.revenue,
         });
       }
@@ -119,13 +119,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           ok: true,
           imported: result.imported,
-          dashboard: getRevenueDashboard(),
+          dashboard: await getRevenueDashboard(),
           revenue: result.state.revenue,
         });
       }
       case "try_api_import": {
         const result = tryNetworkRevenueImport();
-        return NextResponse.json({ ok: true, ...result, dashboard: getRevenueDashboard() });
+        return NextResponse.json({ ok: true, ...result, dashboard: await getRevenueDashboard() });
       }
       case "setup_step": {
         const step = body.step as SetupStepId;
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, setup: state.setup });
       }
       case "sync_setup":
-        return NextResponse.json({ ok: true, setup: syncSetupProgress().setup });
+        return NextResponse.json({ ok: true, setup: (await syncSetupProgress()).setup });
       default:
         return NextResponse.json({ error: "Ação inválida" }, { status: 400 });
     }

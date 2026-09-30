@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { AdSlotConfig, Article, ArticleSummary, NewsletterLead, SiteMetrics } from "./types";
 import { siteConfig } from "./site";
+import { loadMetricsFromBlob, saveMetricsToBlob } from "./metrics-blob";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
@@ -208,54 +209,91 @@ export function saveAdSlots(slots: AdSlotConfig[]) {
   return slots;
 }
 
-export function trackMetricEvent(name: string, meta?: { path?: string; slug?: string }) {
-  const metrics = readJson<SiteMetrics>(METRICS_PATH, {
+type RealMetricsState = {
+  pageViews: number;
+  uniqueVisitors: number;
+  newsletterSignups: number;
+  avgScroll: number;
+  avgReadingTime: number;
+  events: Record<string, number>;
+  /** Real per-article view counts (slug -> count), tracked from actual visits. */
+  articleViews: Record<string, number>;
+};
+
+function defaultRealMetrics(): RealMetricsState {
+  return {
     pageViews: 0,
     uniqueVisitors: 0,
     newsletterSignups: 0,
-    avgScroll: 0,
-    avgReadingTime: 0,
-    topArticles: [],
+    avgScroll: 42,
+    avgReadingTime: 3.5,
     events: {},
-  });
+    articleViews: {},
+  };
+}
+
+/** In-memory cache so repeated calls within the same server instance don't re-fetch Blob. */
+let realMetricsCache: RealMetricsState | null = null;
+let realMetricsBlobHydrated = false;
+
+async function hydrateRealMetrics(): Promise<RealMetricsState> {
+  if (realMetricsCache) return realMetricsCache;
+  const disk = readJson<Partial<RealMetricsState>>(METRICS_PATH, {});
+  realMetricsCache = { ...defaultRealMetrics(), ...disk, articleViews: disk.articleViews || {} };
+
+  if (!realMetricsBlobHydrated) {
+    realMetricsBlobHydrated = true;
+    const remote = await loadMetricsFromBlob<RealMetricsState>();
+    if (remote) {
+      realMetricsCache = { ...defaultRealMetrics(), ...remote };
+    }
+  }
+  return realMetricsCache;
+}
+
+async function persistRealMetrics(data: RealMetricsState) {
+  realMetricsCache = data;
+  writeJson(METRICS_PATH, data);
+  await saveMetricsToBlob(data);
+}
+
+export async function trackMetricEvent(name: string, meta?: { path?: string; slug?: string }) {
+  const metrics = await hydrateRealMetrics();
 
   metrics.events[name] = (metrics.events[name] || 0) + 1;
   if (name === "page_view") metrics.pageViews += 1;
   if (name === "newsletter_signup") metrics.newsletterSignups += 1;
 
   if (meta?.slug && (name === "article_open" || name === "page_view")) {
-    const article = getArticleAdmin(meta.slug);
-    if (article) {
-      article.views += 1;
-      writeJson(path.join(ARTICLES_DIR, `${meta.slug}.json`), article);
-      rebuildIndex();
-    }
+    metrics.articleViews[meta.slug] = (metrics.articleViews[meta.slug] || 0) + 1;
   }
 
-  writeJson(METRICS_PATH, metrics);
+  await persistRealMetrics(metrics);
   return metrics;
 }
 
-export function getMetrics(): SiteMetrics {
-  const base = readJson<SiteMetrics>(METRICS_PATH, {
-    pageViews: 0,
-    uniqueVisitors: 0,
-    newsletterSignups: 0,
-    avgScroll: 42,
-    avgReadingTime: 3.5,
-    topArticles: [],
-    events: {},
-  });
+export async function getMetrics(): Promise<SiteMetrics> {
+  const metrics = await hydrateRealMetrics();
 
-  const articles = listArticlesAdmin()
-    .filter((a) => a.status === "published")
+  const publishedBySlug = new Map(
+    listArticlesAdmin()
+      .filter((a) => a.status === "published")
+      .map((a) => [a.slug, a.title])
+  );
+
+  const topArticles = Object.entries(metrics.articleViews)
+    .filter(([slug]) => publishedBySlug.has(slug))
+    .map(([slug, views]) => ({ slug, title: publishedBySlug.get(slug)!, views }))
     .sort((a, b) => b.views - a.views)
-    .slice(0, 8)
-    .map((a) => ({ slug: a.slug, title: a.title, views: a.views }));
+    .slice(0, 8);
 
   return {
-    ...base,
-    topArticles: articles,
-    uniqueVisitors: base.uniqueVisitors || Math.round(base.pageViews * 0.62),
+    pageViews: metrics.pageViews,
+    uniqueVisitors: metrics.uniqueVisitors || Math.round(metrics.pageViews * 0.62),
+    newsletterSignups: metrics.newsletterSignups,
+    avgScroll: metrics.avgScroll,
+    avgReadingTime: metrics.avgReadingTime,
+    events: metrics.events,
+    topArticles,
   };
 }

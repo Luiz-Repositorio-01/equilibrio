@@ -312,9 +312,9 @@ export function updateSetupStep(step: SetupStepId, done: boolean) {
   return saveMonetization(state);
 }
 
-export function syncSetupProgress() {
+export async function syncSetupProgress() {
   const state = getMonetization();
-  const metrics = getMetrics();
+  const metrics = await getMetrics();
   const articles = listArticlesAdmin().filter((a) => a.status === "published");
   const slots = getAdSlots();
   const leads = getNewsletterLeads();
@@ -359,9 +359,9 @@ export function getActiveBanners(position?: string) {
     .sort((a, b) => b.priority - a.priority);
 }
 
-export function getRevenueDashboard() {
+export async function getRevenueDashboard() {
   const state = getMonetization();
-  const metrics = getMetrics();
+  const metrics = await getMetrics();
   const entries = state.revenue;
 
   const toBRL = (amount: number, currency: "BRL" | "USD") =>

@@ -13,12 +13,12 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 export default async function AdminDashboardPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
 
-  const metrics = getMetrics();
+  const metrics = await getMetrics();
   const articles = listArticlesAdmin();
   const leads = getNewsletterLeads();
-  const setup = syncSetupProgress().setup;
+  const setup = (await syncSetupProgress()).setup;
   const monetization = getMonetization();
-  const revenue = getRevenueDashboard();
+  const revenue = await getRevenueDashboard();
   const published = articles.filter((a) => a.status === "published");
   const drafts = articles.filter((a) => a.status === "draft");
   const stale = published

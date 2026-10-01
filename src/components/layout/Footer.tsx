@@ -37,7 +37,6 @@ export function Footer() {
               <Link href="/privacidade">Privacidade</Link>
               <Link href="/termos">Termos de Uso</Link>
               <Link href="/rss.xml">RSS</Link>
-              <Link href="/admin">Área Admin</Link>
             </div>
           </div>
           <div>
@@ -60,8 +59,6 @@ export function Footer() {
               <Link href="/termos">Termos</Link>
               <span aria-hidden="true">·</span>
               <Link href="/contato">Contato</Link>
-              <span aria-hidden="true">·</span>
-              <Link href="/admin">Admin</Link>
             </nav>
           </div>
           <div className="footer-bottom__row">

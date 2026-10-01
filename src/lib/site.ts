@@ -5,7 +5,7 @@ export const siteConfig = {
   pillars: ["Espiritual", "Mental", "Corpo"] as const,
   description:
     "Portal premium de bem-estar integrado — espiritual, mental e corpo. Conteúdo sobre saúde mental, equilíbrio emocional, meditação, hábitos saudáveis e qualidade de vida.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.equilibriointegral.com.br",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.portalsaudeintegral.com.br",
   locale: "pt_BR",
   language: "pt-BR",
   author: "Antonio Paulo Tavares Pereira",

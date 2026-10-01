@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
+import { getAuthorProfile } from "@/lib/authors";
 import { AdSlot } from "@/components/ui/AdSlot";
 
 type ArticleSidebarProps = {
@@ -7,9 +8,18 @@ type ArticleSidebarProps = {
   category: string;
   categorySlug: string;
   goldTip?: string | null;
+  /** Nome do autor real do artigo (article.author) — nunca o autor padrão do site. */
+  authorName?: string | null;
 };
 
-export function ArticleSidebar({ tags, category, categorySlug, goldTip }: ArticleSidebarProps) {
+export function ArticleSidebar({
+  tags,
+  category,
+  categorySlug,
+  goldTip,
+  authorName,
+}: ArticleSidebarProps) {
+  const author = getAuthorProfile(authorName);
   return (
     <aside className="article-sidebar" style={{ display: "grid", gap: "1rem", alignContent: "start" }}>
       <div className="article-sidebar__card">
@@ -55,19 +65,21 @@ export function ArticleSidebar({ tags, category, categorySlug, goldTip }: Articl
         </div>
       </div>
 
-      <div className="article-sidebar__card article-sidebar__author">
-        <div className="article-sidebar__photo" aria-hidden="true">
-          {/* Espaço reservado — substituir por foto oficial em /assets/brand/author-photo.jpg */}
-          <span>Foto</span>
+      {author && (
+        <div className="article-sidebar__card article-sidebar__author">
+          <div className="article-sidebar__photo" aria-hidden="true">
+            {/* Espaço reservado — substituir por foto oficial quando fornecida */}
+            <span>Foto</span>
+          </div>
+          <div>
+            <strong>{author.name}</strong>
+            <p className="article-sidebar__role">{author.role}</p>
+            <Link href="/sobre#autor" className="article-sidebar__link">
+              Sobre o autor →
+            </Link>
+          </div>
         </div>
-        <div>
-          <strong>{siteConfig.author}</strong>
-          <p className="article-sidebar__role">{siteConfig.authorRole}</p>
-          <Link href="/sobre#autor" className="article-sidebar__link">
-            Sobre o autor →
-          </Link>
-        </div>
-      </div>
+      )}
     </aside>
   );
 }

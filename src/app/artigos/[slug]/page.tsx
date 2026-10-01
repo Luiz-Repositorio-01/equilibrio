@@ -28,8 +28,15 @@ import { NewsletterForm } from "@/components/ui/NewsletterForm";
 
 export const revalidate = 3600;
 
+// Artigo duplicado — mantido em content/ como "draft" e redirecionado via next.config.ts.
+const EXCLUDED_SLUGS = new Set([
+  "o-templo-fisico-como-a-postura-diaria-afeta-sua-energia-vital-2",
+]);
+
 export function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({ slug }));
+  return getAllSlugs()
+    .filter((slug) => !EXCLUDED_SLUGS.has(slug))
+    .map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -158,6 +165,7 @@ export default async function ArticlePage({
           category={article.category}
           categorySlug={article.categorySlug}
           goldTip={goldTip}
+          authorName={article.author}
         />
       </div>
     </>

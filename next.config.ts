@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        // Artigo duplicado (conteúdo idêntico, reimportado por engano) — consolida no original.
+        source: "/artigos/o-templo-fisico-como-a-postura-diaria-afeta-sua-energia-vital-2",
+        destination: "/artigos/o-templo-fisico-como-a-postura-diaria-afeta-sua-energia-vital",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

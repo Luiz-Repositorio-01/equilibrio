@@ -85,9 +85,25 @@ export async function getAllSlugs(): Promise<string[]> {
   return (await loadAllArticles()).map((a) => a.slug);
 }
 
-export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
-  // O destaque da home é sempre o artigo publicado mais recente.
-  return (await getArticleSummaries())[0] || null;
+/**
+ * "Destaque do dia" da home (dia no fuso de Brasília):
+ * 1) artigo publicado HOJE tem prioridade (se houver vários, o mais novo);
+ * 2) nos demais dias, percorre todos os artigos publicados em rodízio contínuo,
+ *    um por dia, do mais antigo ao mais novo, e recomeça quando chega ao fim.
+ */
+export async function getFeaturedArticle(now = Date.now()): Promise<ArticleSummary | null> {
+  const all = await getArticleSummaries(); // mais novo primeiro
+  if (!all.length) return null;
+
+  const brNow = now - 3 * 3600 * 1000;
+  const today = new Date(brNow).toISOString().slice(0, 10);
+
+  const publishedToday = all.find((a) => a.publishedAt === today);
+  if (publishedToday) return publishedToday;
+
+  const loop = [...all].reverse(); // mais antigo -> mais novo
+  const dayNumber = Math.floor(brNow / 86_400_000);
+  return loop[dayNumber % loop.length];
 }
 
 export async function getPopularArticles(limit = 6): Promise<ArticleSummary[]> {

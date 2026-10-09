@@ -368,9 +368,15 @@ async function hydrateRealMetrics(): Promise<RealMetricsState> {
   return realMetricsCache;
 }
 
+let lastMetricsBlobSave = 0;
+const METRICS_BLOB_EVERY_MS = 5 * 60_000;
+
 async function persistRealMetrics(data: RealMetricsState) {
   realMetricsCache = data;
   writeJson(METRICS_PATH, data);
+  // Gravar no Blob a cada visita estoura a cota de operações do plano (e suspende o store).
+  if (Date.now() - lastMetricsBlobSave < METRICS_BLOB_EVERY_MS) return;
+  lastMetricsBlobSave = Date.now();
   await saveMetricsToBlob(data);
 }
 

@@ -216,35 +216,6 @@ export function HomeContentHub({
   );
 }
 
-export function HomeSponsors() {
-  const brands = ["Aether", "Lumina", "Nord", "Vesper", "Orbit", "Halo"];
-  return (
-    <section className="cinema-section sponsors-cinema">
-      <div className="cinema-container">
-        <Reveal>
-          <div className="cinema-section__head">
-            <h2>Parceiros & Patrocinadores</h2>
-            <Link href="/contato">Anuncie aqui</Link>
-          </div>
-          <p className="cinema-subtitle" style={{ margin: "0 0 2rem" }}>
-            Espaço sofisticado para marcas alinhadas à consciência e ao luxo editorial.
-          </p>
-        </Reveal>
-        <div className="sponsors-cinema__grid">
-          {brands.map((b) => (
-            <div key={b} className="sponsors-cinema__logo" aria-label={b}>
-              <span style={{ fontFamily: "var(--cin-font-serif)", fontSize: "1.2rem", letterSpacing: "0.12em" }}>
-                {b}
-              </span>
-            </div>
-          ))}
-        </div>
-        <AdSlot id="sponsor-banner" label="Leaderboard / patrocínio premium" minHeight={56} frame="home" />
-      </div>
-    </section>
-  );
-}
-
 export function HomeTestimonials() {
   const items = [
     {

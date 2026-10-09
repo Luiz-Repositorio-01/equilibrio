@@ -39,19 +39,65 @@ export function HomeFeatureRail() {
   );
 }
 
+const TRUST_ICONS: Record<string, React.ReactNode> = {
+  // folha / equilíbrio
+  pilares: (
+    <>
+      <path d="M12 21c-4.5-2-7-5.5-7-10 4 0 7 1.5 7 5 0-3.5 3-5 7-5 0 4.5-2.5 8-7 10z" />
+      <path d="M12 21V11" />
+    </>
+  ),
+  // pena / texto autoral
+  autoral: (
+    <>
+      <path d="M20 4c-7 0-12 4-13 11l-2 5 5-2c7-1 10-6 10-14z" />
+      <path d="M9 15l6-6" />
+    </>
+  ),
+  // sol / reflexão do dia
+  dia: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
+  ),
+  // coração / cuidado
+  cuidado: (
+    <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
+  ),
+  // escudo / sem spam
+  seguro: (
+    <>
+      <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </>
+  ),
+};
+
 export function HomeTrustStrip() {
   const items = [
-    { k: "3", v: "Pilares: espiritual, mental e corpo" },
-    { k: "100%", v: "Artigos originais e exclusivos" },
-    { k: "Pílula", v: "Reflexão diária na home" },
-    { k: "Suporte", v: "Humano de verdade" },
-    { k: "Zero spam", v: "Só valor" },
+    { icon: "pilares", k: "Três pilares", v: "Espiritual, mental e corpo" },
+    { icon: "autoral", k: "Conteúdo autoral", v: "Artigos originais, escritos para você" },
+    { icon: "dia", k: "Pílula do dia", v: "Uma reflexão diária na home" },
+    { icon: "cuidado", k: "Leitura serena", v: "Sem pressa e sem excesso" },
+    { icon: "seguro", k: "Sem spam", v: "Só conteúdo que vale a pena" },
   ];
   return (
     <div className="trust-strip">
       {items.map((i) => (
         <div key={i.k + i.v} className="trust-strip__item">
-          <span className="trust-strip__icon" aria-hidden="true" />
+          <span className="trust-strip__icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {TRUST_ICONS[i.icon]}
+            </svg>
+          </span>
           <div>
             <strong>{i.k}</strong>
             <div>{i.v}</div>
@@ -106,9 +152,7 @@ export function HomeContentHub({
               </Reveal>
             )}
 
-            <div className="ad-cinema">
-              <AdSlot id="home-feed" label="Anúncio — in-feed" minHeight={56} />
-            </div>
+            <AdSlot id="home-feed" label="Anúncio — in-feed" minHeight={56} frame="home" />
 
             <Reveal delay={1}>
               <div className="cinema-section__head">
@@ -195,9 +239,7 @@ export function HomeSponsors() {
             </div>
           ))}
         </div>
-        <div className="ad-cinema" style={{ marginTop: "1rem" }}>
-          <AdSlot id="sponsor-banner" label="Leaderboard / patrocínio premium" minHeight={56} />
-        </div>
+        <AdSlot id="sponsor-banner" label="Leaderboard / patrocínio premium" minHeight={56} frame="home" />
       </div>
     </section>
   );

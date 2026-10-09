@@ -6,17 +6,8 @@ export async function SponsorBanner({ position = "sponsor" }: { position?: strin
   const banner = banners[0];
 
   if (!banner) {
-    return (
-      <aside className="sponsor" data-sponsor-slot="true" aria-label="Patrocinado">
-        <div className="meta" style={{ marginBottom: "0.5rem" }}>
-          <span className="pill">Patrocinado</span>
-        </div>
-        <h3>Espaço para parceiros e marcas alinhadas</h3>
-        <p style={{ color: "var(--text-muted)", margin: 0 }}>
-          Cadastre banners na Central de Monetização → Banners.
-        </p>
-      </aside>
-    );
+    // Sem banner cadastrado não mostra nada ao público.
+    return null;
   }
 
   return (

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { cache } from "react";
 import type { AdSlotConfig, Article, ArticleSummary, NewsletterLead, SiteMetrics } from "./types";
 import { siteConfig } from "./site";
 import { loadMetricsFromBlob, saveMetricsToBlob } from "./metrics-blob";
@@ -90,10 +91,23 @@ function toSummary(article: Article): ArticleSummary {
 
 type StoredArticle = Article & { deleted?: boolean };
 
+// Cache só durante o build. Em produção NÃO guardamos a lista entre requisições:
+// um servidor com lista de 15s atrás regenerava a página com o artigo já removido
+// e a deixava "guardada" por 5 min. A regeneração (ISR) é rara, então ler fresco é barato.
 let articlesCache: { at: number; items: Article[] } | null = null;
+const isBuild = () => process.env.NEXT_PHASE === "phase-production-build";
 
 export function invalidateArticleCache() {
   articlesCache = null;
+}
+
+/** Slugs existentes (cache curto) — usado para validar visitas sem ler tudo a cada view. */
+let slugsCache: { at: number; set: Set<string> } | null = null;
+export async function getKnownSlugs(): Promise<Set<string>> {
+  if (slugsCache && Date.now() - slugsCache.at < 120_000) return slugsCache.set;
+  const set = new Set((await loadAllArticles({ fresh: true })).map((a) => a.slug));
+  slugsCache = { at: Date.now(), set };
+  return set;
 }
 
 function readFsArticles(): Article[] {
@@ -116,8 +130,8 @@ function readFsArticles(): Article[] {
  * + camada do Blob (artigos novos/editados pelo admin em produção).
  * O Blob sempre prevalece sobre o arquivo empacotado no deploy.
  */
-export async function loadAllArticles(opts?: { fresh?: boolean }): Promise<Article[]> {
-  if (!opts?.fresh && articlesCache && Date.now() - articlesCache.at < CACHE_TTL_MS) {
+async function readAllArticlesNow(): Promise<Article[]> {
+  if (isBuild() && articlesCache && Date.now() - articlesCache.at < 10 * 60_000) {
     return articlesCache.items;
   }
 
@@ -135,8 +149,15 @@ export async function loadAllArticles(opts?: { fresh?: boolean }): Promise<Artic
   const items = [...bySlug.values()]
     .map((a) => ({ ...a, views: views[a.slug] || 0 }))
     .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
-  articlesCache = { at: Date.now(), items };
+  if (isBuild()) articlesCache = { at: Date.now(), items };
   return items;
+}
+
+// Dentro de uma mesma renderização a lista é lida uma vez só (cache por requisição).
+const readAllArticlesPerRequest = cache(readAllArticlesNow);
+
+export async function loadAllArticles(opts?: { fresh?: boolean }): Promise<Article[]> {
+  return opts?.fresh ? readAllArticlesNow() : readAllArticlesPerRequest();
 }
 
 /** Mantém content/index.json em dia quando o disco é gravável (dev local). */

@@ -1,14 +1,8 @@
+/**
+ * Desativado enquanto não houver links de afiliado reais: não mostra ao público
+ * um bloco "pronto para afiliados". Para reativar, renderize aqui as ofertas
+ * cadastradas em Admin → Monetização → Afiliados.
+ */
 export function AffiliateBlock() {
-  return (
-    <aside className="affiliate" data-affiliate-block="true" aria-label="Recomendações">
-      <h3>Recomendado para você</h3>
-      <p style={{ color: "var(--text-muted)", marginTop: 0 }}>
-        Espaço preparado para links de afiliados (Amazon, Hotmart e parceiros).
-        Insira ofertas contextuais sem interromper a leitura.
-      </p>
-      <span className="btn btn--outline" data-track="cta_click" data-track-label="affiliate_placeholder">
-        Bloco de afiliado pronto
-      </span>
-    </aside>
-  );
+  return null;
 }

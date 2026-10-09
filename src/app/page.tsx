@@ -41,11 +41,7 @@ export default async function HomePage() {
 
       <DailyPill reflection={daily} />
 
-      <div className="cinema-container" style={{ paddingBlock: "0.5rem 0.75rem" }}>
-        <div className="ad-cinema">
-          <AdSlot id="home-top" label="Leaderboard — topo editorial" minHeight={56} />
-        </div>
-      </div>
+      <AdSlot id="home-top" label="Leaderboard — topo editorial" minHeight={56} frame="home-top" />
 
       <HomeTrustStrip />
       <HomeContentHub featured={featured} popular={popular} recent={recent} />

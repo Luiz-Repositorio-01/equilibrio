@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetrics, loadAllArticles, trackMetricEvent } from "@/lib/cms";
+import { getKnownSlugs, getMetrics, trackMetricEvent } from "@/lib/cms";
 import { isAuthenticated } from "@/lib/auth";
 
 const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|monitor|curl|wget|python|node-fetch|axios|java|go-http|facebookexternalhit|whatsapp|telegram/i;
@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
     const path = typeof body.path === "string" ? body.path : "";
     const m = path.match(/^\/artigos\/([a-z0-9-]{1,120})\/?$/);
     if (m) {
-      const known = (await loadAllArticles()).some((a) => a.slug === m[1]);
-      if (known) slug = m[1];
+      if ((await getKnownSlugs()).has(m[1])) slug = m[1];
     }
     await trackMetricEvent(name, { path, slug });
     return NextResponse.json({ ok: true });

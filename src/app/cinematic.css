@@ -1378,12 +1378,18 @@ body.site-cinema .logo-mark,
 .trust-strip__icon {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
   border-radius: 50%;
-  background: rgba(201, 169, 110, 0.1);
+  background: rgba(201, 169, 110, 0.12);
+  border: 1px solid rgba(201, 169, 110, 0.28);
   color: var(--cin-gold);
-  font-size: 0.9rem;
+}
+
+.trust-strip__icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .trust-strip__item strong {

@@ -18,8 +18,10 @@ function toSummary(a: Article): ArticleSummary {
   return summary;
 }
 
+// Mais recente primeiro; no mesmo dia, o cadastrado depois (id maior) vem antes.
 const byDateDesc = (a: ArticleSummary, b: ArticleSummary) =>
-  +new Date(b.publishedAt) - +new Date(a.publishedAt);
+  +new Date(b.publishedAt) - +new Date(a.publishedAt) ||
+  b.id.localeCompare(a.id, undefined, { numeric: true });
 
 async function allEffective(): Promise<Article[]> {
   const now = Date.now();
@@ -84,8 +86,8 @@ export async function getAllSlugs(): Promise<string[]> {
 }
 
 export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
-  const all = await getArticleSummaries();
-  return all.find((a) => a.featured) || all[0] || null;
+  // O destaque da home é sempre o artigo publicado mais recente.
+  return (await getArticleSummaries())[0] || null;
 }
 
 export async function getPopularArticles(limit = 6): Promise<ArticleSummary[]> {

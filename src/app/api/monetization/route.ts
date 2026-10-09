@@ -23,7 +23,7 @@ import type { SetupStepId } from "@/lib/types";
 
 async function handleGet(req: NextRequest) {
   if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const view = req.nextUrl.searchParams.get("view");
   if (view === "revenue") {
@@ -37,7 +37,7 @@ async function handleGet(req: NextRequest) {
 
 async function handlePost(req: NextRequest) {
   if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   try {

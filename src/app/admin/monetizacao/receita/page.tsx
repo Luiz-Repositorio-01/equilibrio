@@ -196,7 +196,7 @@ export default function ReceitaAdminPage() {
           <strong style={{ fontSize: "1.4rem" }}>{dash.visitors}</strong>
         </div>
         <div className="admin-card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Sessões / Views</div>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Sessões / Visualizações</div>
           <strong style={{ fontSize: "1.4rem" }}>
             {dash.sessions} / {dash.pageViews}
           </strong>

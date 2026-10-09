@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   try {

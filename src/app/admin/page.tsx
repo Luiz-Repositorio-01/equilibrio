@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
   return (
     <div style={{ display: "grid", gap: "1.2rem" }}>
       <div>
-        <h1 style={{ fontFamily: "var(--font-serif)", margin: 0 }}>Dashboard</h1>
+        <h1 style={{ fontFamily: "var(--font-serif)", margin: 0 }}>Painel</h1>
         <p style={{ color: "var(--text-muted)" }}>
           Visão geral de tráfego, engajamento, conteúdo e monetização.
         </p>
@@ -80,7 +80,7 @@ export default async function AdminDashboardPage() {
 
       <div className="admin-stats">
         <div className="admin-card">
-          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Page views</div>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Visualizações de página</div>
           <strong style={{ fontSize: "1.8rem" }}>{metrics.pageViews}</strong>
         </div>
         <div className="admin-card">
@@ -107,7 +107,7 @@ export default async function AdminDashboardPage() {
             {metrics.topArticles.map((a) => (
               <li key={a.slug} style={{ marginBottom: "0.45rem" }}>
                 <Link href={`/artigos/${a.slug}`}>{a.title}</Link>
-                <span style={{ color: "var(--text-muted)" }}> — {a.views} views</span>
+                <span style={{ color: "var(--text-muted)" }}> — {a.views} visualizações</span>
               </li>
             ))}
           </ul>

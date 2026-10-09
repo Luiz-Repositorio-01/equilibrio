@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           CMS <em>Equilíbrio</em>
         </div>
         <nav>
-          <Link href="/admin">Dashboard</Link>
+          <Link href="/admin">Painel</Link>
           <Link href="/admin/assistente">Assistente</Link>
           <div className="admin-nav-group">Conteúdo</div>
           <Link href="/admin/artigos">Artigos</Link>
@@ -30,7 +30,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/rascunhos">Rascunhos</Link>
           <Link href="/admin/agendamento">Agendamento</Link>
           <Link href="/admin/categorias">Categorias</Link>
-          <Link href="/admin/tags">Tags</Link>
           <Link href="/admin/autores">Autores</Link>
           <Link href="/admin/comentarios">Comentários</Link>
           <Link href="/admin/capas-ia">IA Capas</Link>

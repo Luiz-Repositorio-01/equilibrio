@@ -9,7 +9,7 @@ export default async function AdminNewsletterPage() {
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
       <div>
-        <h1 style={{ fontFamily: "var(--font-serif)", margin: 0 }}>Newsletter / Leads</h1>
+        <h1 style={{ fontFamily: "var(--font-serif)", margin: 0 }}>Newsletter / Contatos</h1>
         <p style={{ color: "var(--text-muted)" }}>{leads.length} inscritos</p>
       </div>
       <div className="admin-card">

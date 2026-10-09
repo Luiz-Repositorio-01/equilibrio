@@ -37,7 +37,7 @@ export default async function TagPage({
   return (
     <section className="section">
       <div className="container">
-        <div className="section__eyebrow">Tag</div>
+        <div className="section__eyebrow">Etiqueta</div>
         <h1 className="section__title">#{tag}</h1>
         <p className="section__desc">{articles.length} artigos encontrados.</p>
         <div className="grid-articles" style={{ marginTop: "2rem" }}>

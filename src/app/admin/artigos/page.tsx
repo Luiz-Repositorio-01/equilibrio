@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import { listArticlesAdmin } from "@/lib/cms";
 
+const STATUS_PT: Record<string, string> = {
+  published: "Publicado",
+  draft: "Rascunho",
+  scheduled: "Agendado",
+};
+
 export default async function AdminArticlesPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
   const articles = await listArticlesAdmin();
@@ -24,8 +30,8 @@ export default async function AdminArticlesPage() {
             <tr style={{ textAlign: "left", color: "var(--text-muted)" }}>
               <th style={{ padding: "0.6rem" }}>Título</th>
               <th style={{ padding: "0.6rem" }}>Categoria</th>
-              <th style={{ padding: "0.6rem" }}>Status</th>
-              <th style={{ padding: "0.6rem" }}>Views</th>
+              <th style={{ padding: "0.6rem" }}>Situação</th>
+              <th style={{ padding: "0.6rem" }}>Visualizações</th>
               <th style={{ padding: "0.6rem" }}>Ações</th>
             </tr>
           </thead>
@@ -35,7 +41,7 @@ export default async function AdminArticlesPage() {
                 <td style={{ padding: "0.7rem" }}>{a.title}</td>
                 <td style={{ padding: "0.7rem" }}>{a.category}</td>
                 <td style={{ padding: "0.7rem" }}>
-                  {a.status}
+                  {STATUS_PT[a.status] || a.status}
                   {a.status === "scheduled" && a.scheduledFor
                     ? ` — ${new Date(a.scheduledFor).toLocaleString("pt-BR", {
                         timeZone: "America/Sao_Paulo",

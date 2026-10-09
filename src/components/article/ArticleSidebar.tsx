@@ -50,7 +50,7 @@ export function ArticleSidebar({
       <AdSlot id="article-sidebar" label="Anúncio — lateral" minHeight={250} />
 
       <div className="article-sidebar__card">
-        <h2 className="article-sidebar__title">Tags</h2>
+        <h2 className="article-sidebar__title">Etiquetas</h2>
         <div className="tag-cloud">
           {tags.map((tag) => (
             <Link

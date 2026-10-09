@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   return NextResponse.json(await getMetrics());
 }

@@ -11,7 +11,7 @@ export async function GET() {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ articles: listArticlesAdmin() });
+  return NextResponse.json({ articles: await listArticlesAdmin() });
 }
 
 export async function POST(req: NextRequest) {

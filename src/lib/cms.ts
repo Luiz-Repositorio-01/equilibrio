@@ -3,7 +3,7 @@ import path from "path";
 import type { AdSlotConfig, Article, ArticleSummary, NewsletterLead, SiteMetrics } from "./types";
 import { siteConfig } from "./site";
 import { loadMetricsFromBlob, saveMetricsToBlob } from "./metrics-blob";
-import { blobEnabled, blobListJson, blobReadJson, blobWriteJson } from "./blob-json";
+import { blobEnabled, blobListJson, blobReadJson, blobWriteJson, storeRpc } from "./blob-json";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
@@ -130,9 +130,11 @@ export async function loadAllArticles(opts?: { fresh?: boolean }): Promise<Artic
     else bySlug.set(a.slug, a);
   }
 
-  const items = [...bySlug.values()].sort(
-    (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt)
-  );
+  const views = (await getViewTotals()).bySlug;
+  // "views" do JSON do repositório eram números de exemplo: só a contagem real vale.
+  const items = [...bySlug.values()]
+    .map((a) => ({ ...a, views: views[a.slug] || 0 }))
+    .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
   articlesCache = { at: Date.now(), items };
   return items;
 }
@@ -380,16 +382,57 @@ async function persistRealMetrics(data: RealMetricsState) {
   await saveMetricsToBlob(data);
 }
 
+/** Contagem real de visualizações (por artigo e do site), com cache curto em memória. */
+let viewsCache: { at: number; site: number; bySlug: Record<string, number> } | null = null;
+const VIEWS_TTL_MS = 60_000;
+
+export async function getViewTotals(
+  opts?: { fresh?: boolean }
+): Promise<{ site: number; bySlug: Record<string, number> }> {
+  if (!blobEnabled()) {
+    const m = await hydrateRealMetrics();
+    return { site: m.pageViews, bySlug: m.articleViews };
+  }
+  if (!opts?.fresh && viewsCache && Date.now() - viewsCache.at < VIEWS_TTL_MS) return viewsCache;
+  try {
+    const rows = (await storeRpc<{ slug: string; total: number }[]>("blog_view_totals")) || [];
+    const bySlug: Record<string, number> = {};
+    let site = 0;
+    for (const r of rows) {
+      if (r.slug === "_site") site = Number(r.total);
+      else bySlug[r.slug] = Number(r.total);
+    }
+    viewsCache = { at: Date.now(), site, bySlug };
+  } catch (err) {
+    console.warn("[views] leitura falhou:", err instanceof Error ? err.message : err);
+    return viewsCache ?? { site: 0, bySlug: {} };
+  }
+  return viewsCache;
+}
+
+/** Registra 1 visualização (contador atômico no Supabase; em dev, arquivo local). */
+export async function recordPageView(slug?: string) {
+  if (blobEnabled()) {
+    await storeRpc("blog_track_view", { p_slug: "_site" });
+    if (slug) await storeRpc("blog_track_view", { p_slug: slug });
+    return;
+  }
+  const m = await hydrateRealMetrics();
+  m.pageViews += 1;
+  if (slug) m.articleViews[slug] = (m.articleViews[slug] || 0) + 1;
+  await persistRealMetrics(m);
+}
+
 export async function trackMetricEvent(name: string, meta?: { path?: string; slug?: string }) {
+  // Visualização de página tem contador próprio (atômico, não perde visitas).
+  if (name === "page_view") {
+    await recordPageView(meta?.slug);
+    return;
+  }
   const metrics = await hydrateRealMetrics();
 
   metrics.events[name] = (metrics.events[name] || 0) + 1;
-  if (name === "page_view") metrics.pageViews += 1;
   if (name === "newsletter_signup") metrics.newsletterSignups += 1;
-
-  if (meta?.slug && (name === "article_open" || name === "page_view")) {
-    metrics.articleViews[meta.slug] = (metrics.articleViews[meta.slug] || 0) + 1;
-  }
 
   await persistRealMetrics(metrics);
   return metrics;
@@ -397,6 +440,7 @@ export async function trackMetricEvent(name: string, meta?: { path?: string; slu
 
 export async function getMetrics(): Promise<SiteMetrics> {
   const metrics = await hydrateRealMetrics();
+  const totals = await getViewTotals({ fresh: true }); // painel do admin: sempre atualizado
 
   const publishedBySlug = new Map(
     (await listArticlesAdmin())
@@ -404,15 +448,16 @@ export async function getMetrics(): Promise<SiteMetrics> {
       .map((a) => [a.slug, a.title])
   );
 
-  const topArticles = Object.entries(metrics.articleViews)
+  const topArticles = Object.entries(totals.bySlug)
     .filter(([slug]) => publishedBySlug.has(slug))
     .map(([slug, views]) => ({ slug, title: publishedBySlug.get(slug)!, views }))
     .sort((a, b) => b.views - a.views)
     .slice(0, 8);
 
   return {
-    pageViews: metrics.pageViews,
-    uniqueVisitors: metrics.uniqueVisitors || Math.round(metrics.pageViews * 0.62),
+    pageViews: totals.site,
+    // Visitantes únicos não são medidos (antes era uma estimativa inventada: 62% das views).
+    uniqueVisitors: 0,
     newsletterSignups: metrics.newsletterSignups,
     avgScroll: metrics.avgScroll,
     avgReadingTime: metrics.avgReadingTime,

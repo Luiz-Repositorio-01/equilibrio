@@ -85,7 +85,7 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="admin-card">
           <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Visitantes</div>
-          <strong style={{ fontSize: "1.8rem" }}>{metrics.uniqueVisitors}</strong>
+          <strong style={{ fontSize: "1.8rem" }}>—</strong>
         </div>
         <div className="admin-card">
           <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Newsletter</div>
@@ -128,7 +128,7 @@ export default async function AdminDashboardPage() {
             )}
           </ul>
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-            Scroll médio: {metrics.avgScroll}% · Tempo médio: {metrics.avgReadingTime} min
+            Visitantes únicos, scroll e tempo médio ainda não são medidos.
           </p>
         </div>
       </div>

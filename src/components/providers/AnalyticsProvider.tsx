@@ -29,6 +29,17 @@ export function trackEvent(
     window.gtag("event", name, params);
   }
 
+  // Visualização: conta cada página só uma vez por sessão (recarregar não infla o número).
+  if (name === "page_view") {
+    try {
+      const key = "pv:" + window.location.pathname;
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch {
+      /* sem sessionStorage: conta mesmo assim */
+    }
+  }
+
   // Mirror key events to CMS metrics (best-effort)
   if (
     ["page_view", "newsletter_signup", "article_open", "share", "cta_click"].includes(

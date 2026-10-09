@@ -39,6 +39,21 @@ async function request(path: string, init: RequestInit) {
   return res;
 }
 
+/** Chama uma função SQL (RPC) com a chave de serviço. Lança erro se falhar. */
+export async function storeRpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  const res = await fetch(`${url()}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(args),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase rpc ${fn} falhou (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const text = await res.text();
+  return (text ? JSON.parse(text) : null) as T;
+}
+
 export async function blobReadJson<T>(key: string): Promise<T | null> {
   if (!blobEnabled()) return null;
   try {

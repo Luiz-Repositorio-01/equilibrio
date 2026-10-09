@@ -36,7 +36,7 @@ export function HomeHero({ featured }: { featured?: ArticleSummary | null }) {
     featured?.coverVariants?.home ||
     featured?.coverImage ||
     "";
-  const coverUnoptimized = cover.endsWith(".svg") || cover.includes("/api/");
+  const coverUnoptimized = cover.endsWith(".svg") || cover.includes("/api/") || cover.startsWith("http");
 
   return (
     <section className="cinema-hero" aria-label="Experiência principal">

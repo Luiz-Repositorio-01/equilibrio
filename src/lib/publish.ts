@@ -11,12 +11,7 @@ export type PublishInput = Partial<Article> & {
   regenerateCover?: boolean;
 };
 
-/**
- * Na Vercel o disco é somente leitura: não dá para gravar fotos/variantes em
- * public/. Lá a capa é a arte editorial gerada sob demanda por /api/cover-art.
- */
-export const canWriteCoverFiles = !process.env.VERCEL;
-
+/** Fallback quando não há foto: arte editorial gerada sob demanda por /api/cover-art. */
 export function dynamicCoverUrl(a: Pick<Article, "slug" | "title" | "categorySlug">) {
   return `/api/cover-art?slug=${encodeURIComponent(a.slug)}&title=${encodeURIComponent(
     a.title
@@ -66,15 +61,7 @@ export async function publishArticle(input: PublishInput): Promise<Article> {
         draft.coverImage.includes("hero-bg") ||
         draft.coverImage.includes("/images/covers/saude-")));
 
-  if (needsCover && !canWriteCoverFiles) {
-    const isPlaceholder =
-      !draft.coverImage ||
-      draft.coverImage.includes("hero-bg") ||
-      draft.coverImage.includes("/images/covers/saude-");
-    if (isPlaceholder) {
-      draft = await saveArticle({ ...draft, coverImage: dynamicCoverUrl(draft) });
-    }
-  } else if (needsCover) {
+  if (needsCover) {
     try {
       const pack = await generateCoverPackage({
         slug: draft.slug,
@@ -97,6 +84,13 @@ export async function publishArticle(input: PublishInput): Promise<Article> {
       });
     } catch (err) {
       console.error("[publish] cover generation failed", err);
+      const isPlaceholder =
+        !draft.coverImage ||
+        draft.coverImage.includes("hero-bg") ||
+        draft.coverImage.includes("/images/covers/saude-");
+      if (isPlaceholder) {
+        draft = await saveArticle({ ...draft, coverImage: dynamicCoverUrl(draft) });
+      }
     }
   }
 

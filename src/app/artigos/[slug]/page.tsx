@@ -112,7 +112,7 @@ export default async function ArticlePage({
               height={600}
               priority
               sizes="100vw"
-              unoptimized={article.coverImage.endsWith(".svg") || article.coverImage.includes("/api/cover-art")}
+              unoptimized={article.coverImage.endsWith(".svg") || article.coverImage.includes("/api/") || article.coverImage.startsWith("http")}
             />
           </div>
         </div>

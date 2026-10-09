@@ -21,7 +21,8 @@ export function ArticleCard({ article }: { article: ArticleSummary }) {
           sizes="(max-width: 640px) 100vw, 33vw"
           unoptimized={
             article.coverImage.endsWith(".svg") ||
-            article.coverImage.includes("/api/cover-art")
+            article.coverImage.includes("/api/") ||
+            article.coverImage.startsWith("http")
           }
         />
       </Link>

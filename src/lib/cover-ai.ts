@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import sharp from "sharp";
 import type { Article } from "./types";
+import { loadAllArticles } from "./cms";
 
 export type CoverStyle =
   | "Minimalista Premium"
@@ -961,19 +962,27 @@ async function generatePhotoCoverPackage(
   } catch {
     photoMap = {};
   }
+  // Na Vercel o disco é somente leitura e não guardamos imagens: a capa usa a URL
+  // da própria foto (Pexels/Openverse). Evita repetir fotos já usadas por outros artigos.
+  const remoteMode = Boolean(process.env.VERCEL);
+  const usedUrls = new Set<string>();
+  if (remoteMode) {
+    for (const a of await loadAllArticles()) {
+      if (a.slug !== article.slug && /^https?:/.test(a.coverImage || "")) usedUrls.add(a.coverImage);
+    }
+  }
+  // forceSeed = "gerar nova capa": também evita repetir a foto atual deste artigo
   const usedByOthers = new Set(
     Object.entries(photoMap)
-      .filter(([slug]) => slug !== article.slug)
+      .filter(([slug]) => slug !== article.slug || options?.forceSeed !== undefined)
       .map(([, id]) => String(id))
   );
 
   // Prioriza os candidatos da consulta mais específica (o "motivo" do artigo,
   // que vem primeiro) e que ainda não foram usados em outro artigo — mantém a
   // relação com o tema e garante unicidade. Baixa o 1º que funcionar.
-  const ordered = [
-    ...candidates.filter((c) => !usedByOthers.has(c.id)),
-    ...candidates.filter((c) => usedByOthers.has(c.id)),
-  ];
+  const isUsed = (c: PhotoCandidate) => usedByOthers.has(c.id) || usedUrls.has(c.downloadUrl);
+  const ordered = [...candidates.filter((c) => !isUsed(c)), ...candidates.filter(isUsed)];
 
   let chosen: PhotoCandidate | null = null;
   let photoBuffer: Buffer | null = null;
@@ -989,6 +998,38 @@ async function generatePhotoCoverPackage(
     }
   }
   if (!chosen || !photoBuffer) throw new Error("Nenhuma foto utilizável pôde ser baixada");
+
+  if (remoteMode) {
+    // Foto baixada só para validar; descartada. Nada é gravado.
+    const url = chosen.downloadUrl;
+    const kwRemote = brief.keywords.slice(0, 4).join(", ");
+    const creditRemote = chosen.credit
+      ? `Foto: ${chosen.credit} / ${chosen.source}`
+      : `Foto: ${chosen.source}`;
+    return {
+      coverImage: url,
+      coverAlt: `${article.title} — fotografia editorial sobre ${article.category}${
+        kwRemote ? `, relacionada a ${kwRemote}` : ""
+      }`,
+      coverCaption: creditRemote,
+      coverDescription: `Fotografia real selecionada para o tema do artigo (${article.category}). ${creditRemote}.`,
+      coverVariants: { featured: url, og: url, twitter: url, thumb: url, home: url, share: url },
+      coverMeta: {
+        style: "Fotografia Realista",
+        layout: brief.layout,
+        sentiment: brief.sentiment,
+        keywords: brief.keywords,
+        lighting: brief.lighting,
+        motif: brief.motif,
+        generatedAt: new Date().toISOString(),
+        seed: brief.seed,
+        engine: "equilibrio-cover-photo-remote-v1",
+        credit: chosen.credit,
+        creditUrl: chosen.creditUrl,
+        source: chosen.source,
+      },
+    };
+  }
 
   const outDir = path.join(publicDir, "images", "covers", article.slug);
   fs.mkdirSync(outDir, { recursive: true });

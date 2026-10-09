@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
 import { getArticleAdmin, saveArticle } from "@/lib/cms";
 import { generateCoverPackage } from "@/lib/cover-ai";
-import { canWriteCoverFiles, dynamicCoverUrl } from "@/lib/publish";
+import { dynamicCoverUrl } from "@/lib/publish";
 import { revalidatePath } from "next/cache";
 
 export const maxDuration = 60;
@@ -20,17 +20,6 @@ export async function POST(req: NextRequest) {
     const article = await getArticleAdmin(slug);
     if (!article) {
       return NextResponse.json({ error: "Artigo não encontrado" }, { status: 404 });
-    }
-
-    if (!canWriteCoverFiles) {
-      // Produção: disco somente leitura — usa a arte editorial dinâmica.
-      const updatedProd = await saveArticle({ ...article, coverImage: dynamicCoverUrl(article) });
-      revalidatePath("/", "layout");
-      return NextResponse.json({
-        ok: true,
-        article: updatedProd,
-        cover: { coverImage: updatedProd.coverImage },
-      });
     }
 
     const pack = await generateCoverPackage(
@@ -57,6 +46,7 @@ export async function POST(req: NextRequest) {
       coverMeta: pack.coverMeta,
     });
 
+    revalidatePath("/", "layout");
     return NextResponse.json({ ok: true, article: updated, cover: pack });
   } catch (e) {
     return NextResponse.json(

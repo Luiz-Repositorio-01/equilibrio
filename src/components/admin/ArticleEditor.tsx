@@ -106,7 +106,7 @@ export function ArticleEditor({ article }: { article?: Article }) {
         const input = formRef.current?.elements.namedItem("coverImage") as HTMLInputElement | null;
         if (input) input.value = data.cover?.coverImage || "";
         setAiNote(
-          `Capa gerada: ${data.cover?.coverMeta?.style} · ${data.cover?.coverMeta?.layout}`
+          `Capa gerada: ${data.cover?.coverCaption || data.cover?.coverMeta?.source || "arte editorial"}`
         );
         router.refresh();
         return;

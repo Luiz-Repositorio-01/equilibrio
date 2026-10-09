@@ -1,91 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
-import { getArticleAdmin, saveArticle } from "@/lib/cms";
+import { getArticleAdmin } from "@/lib/cms";
 import { buildSeoFromArticle } from "@/lib/cover-ai";
 import { siteConfig } from "@/lib/site";
 
+/**
+ * Sugere título SEO, meta descrição, palavras-chave e resumo a partir do texto do formulário.
+ * NÃO salva nada: o editor preenche os campos e o artigo só muda ao Publicar.
+ */
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Sua sessão expirou. Entre novamente no painel." },
+      { status: 401 }
+    );
   }
 
   try {
     const body = await req.json();
     const mode = String(body.mode || "all");
-    const slug = body.slug ? String(body.slug) : "";
+    const existing = body.slug ? await getArticleAdmin(String(body.slug)) : null;
+    const pick = (k: string, fallback = "") => String(body[k] ?? "").trim() || fallback;
 
-    const source = slug
-      ? await getArticleAdmin(slug)
-      : {
-          title: String(body.title || ""),
-          subtitle: String(body.subtitle || ""),
-          excerpt: String(body.excerpt || ""),
-          contentText: String(body.content || ""),
-          tags: Array.isArray(body.tags)
-            ? body.tags
-            : String(body.tags || "")
-                .split(",")
-                .map((t: string) => t.trim())
-                .filter(Boolean),
-          category: String(body.category || ""),
-        };
-
-    if (!source || !("title" in source) || !source.title) {
-      return NextResponse.json({ error: "Dados insuficientes" }, { status: 400 });
+    const title = pick("title", existing?.title || "");
+    const content = pick("content") || existing?.contentText || existing?.content || "";
+    if (!title) {
+      return NextResponse.json({ error: "Informe o título antes de gerar." }, { status: 400 });
+    }
+    if (content.replace(/<[^>]+>/g, " ").trim().length < 80) {
+      return NextResponse.json(
+        { error: "Escreva um pouco mais no conteúdo antes de gerar (pelo menos 80 caracteres)." },
+        { status: 400 }
+      );
     }
 
+    const tags = pick("tags")
+      ? pick("tags")
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : existing?.tags || [];
+
     const built = buildSeoFromArticle({
-      title: source.title,
-      subtitle: "subtitle" in source ? source.subtitle : body.subtitle,
-      excerpt: "excerpt" in source ? source.excerpt : body.excerpt,
-      contentText:
-        "contentText" in source && source.contentText
-          ? source.contentText
-          : "content" in source && typeof source.content === "string"
-            ? source.content.replace(/<[^>]+>/g, " ")
-            : String(body.content || ""),
-      tags: "tags" in source ? source.tags : body.tags,
-      category: "category" in source ? source.category : body.category,
+      title,
+      subtitle: pick("subtitle", existing?.subtitle || ""),
+      excerpt: pick("excerpt", existing?.excerpt || ""),
+      contentText: content.replace(/<[^>]+>/g, " "),
+      tags,
+      category: pick("category", existing?.category || ""),
       siteName: siteConfig.name,
     });
 
     const result: Record<string, unknown> = { mode };
-
-    if (mode === "meta" || mode === "all") result.metaDescription = built.metaDescription;
+    if (mode === "meta" || mode === "seo" || mode === "all") result.metaDescription = built.metaDescription;
+    if (mode === "seo" || mode === "all") result.seoTitle = built.seoTitle;
     if (mode === "keywords" || mode === "all") result.keywords = built.keywords;
     if (mode === "summary" || mode === "all") result.summary = built.summary;
-    if (mode === "seo" || mode === "all") {
-      result.seoTitle = built.seoTitle;
-      result.metaDescription = built.metaDescription;
-      result.keywords = built.keywords;
-    }
     if (mode === "alt" || mode === "all") result.coverAlt = built.coverAlt;
-
-    if (slug && body.persist) {
-      const article = await getArticleAdmin(slug);
-      if (article) {
-        const updated = await saveArticle({
-          ...article,
-          excerpt: mode === "summary" || mode === "all" ? built.summary : article.excerpt,
-          coverAlt: mode === "alt" || mode === "all" ? built.coverAlt : article.coverAlt,
-          seo: {
-            title: built.seoTitle,
-            description: built.metaDescription,
-            keywords: built.keywords,
-          },
-          tags:
-            mode === "keywords" || mode === "all"
-              ? [...new Set([...(article.tags || []), ...built.keywords])].slice(0, 12)
-              : article.tags,
-        });
-        result.article = updated;
-      }
-    }
 
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Falha na geração SEO" },
+      { error: e instanceof Error ? `Falha na geração: ${e.message}` : "Falha na geração." },
       { status: 500 }
     );
   }

@@ -1121,7 +1121,7 @@ export async function generateCoverPackage(
     Article,
     "slug" | "title" | "subtitle" | "excerpt" | "category" | "categorySlug" | "tags"
   > & { contentText?: string },
-  options?: { forceSeed?: number; publicDir?: string }
+  options?: { forceSeed?: number; publicDir?: string; reasonOut?: { reason?: string } }
 ): Promise<CoverPackage> {
   const brief = analyzeCoverBrief({
     slug: article.slug,
@@ -1144,8 +1144,14 @@ export async function generateCoverPackage(
     if (candidates.length) {
       return await generatePhotoCoverPackage(article, brief, candidates, options);
     }
+    if (options?.reasonOut) {
+      options.reasonOut.reason = "Nenhuma foto adequada ao tema foi encontrada nos bancos de imagens.";
+    }
     console.warn(`[cover] Sem fotos para "${article.slug}". Usando arte de fallback.`);
   } catch (err) {
+    if (options?.reasonOut) {
+      options.reasonOut.reason = `Não consegui buscar ou baixar a foto (${(err as Error).message}).`;
+    }
     console.warn(
       `[cover] Foto real indisponível para "${article.slug}" (${
         (err as Error).message
@@ -1153,6 +1159,18 @@ export async function generateCoverPackage(
     );
   }
   return generateArtCoverPackage(article, options);
+}
+
+/** Corta no fim de uma frase (ou, na falta, de uma palavra) sem deixar vírgula solta no final. */
+function clipText(text: string, max: number): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const head = t.slice(0, max);
+  const sentenceEnd = Math.max(head.lastIndexOf(". "), head.lastIndexOf("! "), head.lastIndexOf("? "));
+  if (sentenceEnd >= Math.floor(max * 0.5)) return head.slice(0, sentenceEnd + 1).trim();
+  const lastSpace = head.lastIndexOf(" ");
+  const cut = (lastSpace > 0 ? head.slice(0, lastSpace) : head).replace(/[\s,;:–—-]+$/, "");
+  return `${cut}…`;
 }
 
 export function buildSeoFromArticle(input: {
@@ -1168,10 +1186,10 @@ export function buildSeoFromArticle(input: {
   const text = (input.contentText || input.excerpt || "").replace(/\s+/g, " ").trim();
   const summary =
     input.excerpt?.trim() ||
-    text.slice(0, 220) ||
+    clipText(text, 220) ||
     input.subtitle ||
     input.title;
-  const metaDescription = (input.subtitle || summary).slice(0, 158);
+  const metaDescription = clipText(input.subtitle || summary, 158);
   const keywords = extractKeywords(
     `${input.title} ${input.subtitle || ""} ${text} ${(input.tags || []).join(" ")} ${input.category || ""}`,
     input.tags || []
@@ -1181,7 +1199,7 @@ export function buildSeoFromArticle(input: {
     seoTitle: input.title,
     metaDescription,
     keywords,
-    summary: summary.slice(0, 280),
+    summary: clipText(summary, 280),
     coverAlt: `Capa do artigo “${input.title}” no portal ${siteName}`,
   };
 }

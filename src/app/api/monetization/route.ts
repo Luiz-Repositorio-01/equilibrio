@@ -4,8 +4,10 @@ import {
   addRevenueEntry,
   deleteRevenueEntry,
   detectAdSenseInstall,
+  flushMonetization,
   getMonetization,
   getRevenueDashboard,
+  hydrateMonetization,
   importRevenueEntries,
   saveAdManager,
   saveAdSense,
@@ -19,7 +21,7 @@ import {
 } from "@/lib/monetization";
 import type { SetupStepId } from "@/lib/types";
 
-export async function GET(req: NextRequest) {
+async function handleGet(req: NextRequest) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(getMonetization());
 }
 
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -143,4 +145,27 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/** Hidrata do Blob antes e persiste depois — em produção o disco é somente leitura. */
+async function withPersistence(handler: (req: NextRequest) => Promise<NextResponse>, req: NextRequest) {
+  try {
+    await hydrateMonetization();
+    const res = await handler(req);
+    await flushMonetization();
+    return res;
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Erro ao salvar" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  return withPersistence(handleGet, req);
+}
+
+export async function POST(req: NextRequest) {
+  return withPersistence(handlePost, req);
 }

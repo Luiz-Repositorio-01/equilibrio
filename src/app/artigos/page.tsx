@@ -11,7 +11,7 @@ export const metadata = buildPageMetadata({
   path: "/artigos",
 });
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 const PER_PAGE = 9;
 
@@ -22,8 +22,8 @@ export default async function ArtigosPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam || 1));
-  const all = getArticleSummaries();
-  const categories = getAllCategories();
+  const all = await getArticleSummaries();
+  const categories = await getAllCategories();
   const totalPages = Math.max(1, Math.ceil(all.length / PER_PAGE));
   const current = Math.min(page, totalPages);
   const items = all.slice((current - 1) * PER_PAGE, current * PER_PAGE);

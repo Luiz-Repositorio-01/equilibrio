@@ -5,7 +5,7 @@ import { listArticlesAdmin } from "@/lib/cms";
 
 export default async function AdminArticlesPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
-  const articles = listArticlesAdmin();
+  const articles = await listArticlesAdmin();
 
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
@@ -34,7 +34,16 @@ export default async function AdminArticlesPage() {
               <tr key={a.slug} style={{ borderTop: "1px solid var(--border)" }}>
                 <td style={{ padding: "0.7rem" }}>{a.title}</td>
                 <td style={{ padding: "0.7rem" }}>{a.category}</td>
-                <td style={{ padding: "0.7rem" }}>{a.status}</td>
+                <td style={{ padding: "0.7rem" }}>
+                  {a.status}
+                  {a.status === "scheduled" && a.scheduledFor
+                    ? ` — ${new Date(a.scheduledFor).toLocaleString("pt-BR", {
+                        timeZone: "America/Sao_Paulo",
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })}`
+                    : ""}
+                </td>
                 <td style={{ padding: "0.7rem" }}>{a.views}</td>
                 <td style={{ padding: "0.7rem" }}>
                   <Link href={`/admin/artigos/${a.slug}`}>Editar</Link>

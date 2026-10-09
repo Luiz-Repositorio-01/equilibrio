@@ -1,14 +1,29 @@
-import fs from "fs";
-import path from "path";
 import type { Article, ArticleSummary } from "./types";
+import { loadAllArticles } from "./cms";
 
-const CONTENT_DIR = path.join(process.cwd(), "content");
-const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
-const INDEX_PATH = path.join(CONTENT_DIR, "index.json");
+/**
+ * Status "efetivo" para o site público: artigo agendado cuja data/hora já
+ * passou conta como publicado (não depende de cron nem de novo deploy).
+ */
+function applySchedule(a: Article, now = Date.now()): Article {
+  if (a.status !== "scheduled" || !a.scheduledFor) return a;
+  const when = +new Date(a.scheduledFor);
+  if (Number.isNaN(when) || when > now) return a;
+  return { ...a, status: "published", publishedAt: a.scheduledFor.slice(0, 10) };
+}
 
-function readJsonFile<T>(filePath: string): T {
-  const raw = fs.readFileSync(filePath, "utf-8").replace(/^\uFEFF/, "");
-  return JSON.parse(raw) as T;
+function toSummary(a: Article): ArticleSummary {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { content, contentText, toc, faq, sourceFile, ...summary } = a;
+  return summary;
+}
+
+const byDateDesc = (a: ArticleSummary, b: ArticleSummary) =>
+  +new Date(b.publishedAt) - +new Date(a.publishedAt);
+
+async function allEffective(): Promise<Article[]> {
+  const now = Date.now();
+  return (await loadAllArticles()).map((a) => applySchedule(a, now));
 }
 
 function enhanceContent(html: string): string {
@@ -43,67 +58,59 @@ export function extractGoldTip(html: string, explicit?: string): string | null {
   return null;
 }
 
-export function getArticleSummaries(): ArticleSummary[] {
-  if (!fs.existsSync(INDEX_PATH)) return [];
-  const items = readJsonFile<ArticleSummary[]>(INDEX_PATH);
-  return items
+export async function getArticleSummaries(): Promise<ArticleSummary[]> {
+  return (await allEffective())
     .filter((a) => a.status === "published")
-    .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
+    .map(toSummary)
+    .sort(byDateDesc);
 }
 
-export function getAllArticleSummaries(): ArticleSummary[] {
-  if (!fs.existsSync(INDEX_PATH)) return [];
-  return readJsonFile<ArticleSummary[]>(INDEX_PATH).sort(
-    (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt)
-  );
+export async function getAllArticleSummaries(): Promise<ArticleSummary[]> {
+  return (await allEffective()).map(toSummary).sort(byDateDesc);
 }
 
-export function getArticleBySlug(slug: string): Article | null {
-  const filePath = path.join(ARTICLES_DIR, `${slug}.json`);
-  if (!fs.existsSync(filePath)) return null;
-  const article = readJsonFile<Article>(filePath);
+export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  const article = (await allEffective()).find((a) => a.slug === slug);
+  if (!article) return null;
   return {
     ...article,
     content: enhanceContent(article.content),
   };
 }
 
-export function getAllSlugs(): string[] {
-  if (!fs.existsSync(ARTICLES_DIR)) return [];
-  return fs
-    .readdirSync(ARTICLES_DIR)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => f.replace(/\.json$/, ""));
+/** Slugs publicados para pré-geração; artigos novos são gerados sob demanda. */
+export async function getAllSlugs(): Promise<string[]> {
+  return (await loadAllArticles()).map((a) => a.slug);
 }
 
-export function getFeaturedArticle(): ArticleSummary | null {
-  const all = getArticleSummaries();
+export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
+  const all = await getArticleSummaries();
   return all.find((a) => a.featured) || all[0] || null;
 }
 
-export function getPopularArticles(limit = 6): ArticleSummary[] {
-  return [...getArticleSummaries()]
+export async function getPopularArticles(limit = 6): Promise<ArticleSummary[]> {
+  return [...(await getArticleSummaries())]
     .sort((a, b) => b.views - a.views)
     .slice(0, limit);
 }
 
-export function getRecentArticles(limit = 9): ArticleSummary[] {
-  return getArticleSummaries().slice(0, limit);
+export async function getRecentArticles(limit = 9): Promise<ArticleSummary[]> {
+  return (await getArticleSummaries()).slice(0, limit);
 }
 
-export function getArticlesByCategory(categorySlug: string): ArticleSummary[] {
-  return getArticleSummaries().filter((a) => a.categorySlug === categorySlug);
+export async function getArticlesByCategory(categorySlug: string): Promise<ArticleSummary[]> {
+  return (await getArticleSummaries()).filter((a) => a.categorySlug === categorySlug);
 }
 
-export function getArticlesByTag(tag: string): ArticleSummary[] {
+export async function getArticlesByTag(tag: string): Promise<ArticleSummary[]> {
   const normalized = tag.toLowerCase();
-  return getArticleSummaries().filter((a) =>
+  return (await getArticleSummaries()).filter((a) =>
     a.tags.map((t) => t.toLowerCase()).includes(normalized)
   );
 }
 
-export function getRelatedArticles(article: Article, limit = 4): ArticleSummary[] {
-  const others = getArticleSummaries().filter((a) => a.slug !== article.slug);
+export async function getRelatedArticles(article: Article, limit = 4): Promise<ArticleSummary[]> {
+  const others = (await getArticleSummaries()).filter((a) => a.slug !== article.slug);
   const scored = others.map((a) => {
     let score = 0;
     if (a.categorySlug === article.categorySlug) score += 5;
@@ -116,11 +123,11 @@ export function getRelatedArticles(article: Article, limit = 4): ArticleSummary[
     .map((x) => x.a);
 }
 
-export function getAdjacentArticles(slug: string): {
+export async function getAdjacentArticles(slug: string): Promise<{
   prev: ArticleSummary | null;
   next: ArticleSummary | null;
-} {
-  const all = getArticleSummaries();
+}> {
+  const all = await getArticleSummaries();
   const idx = all.findIndex((a) => a.slug === slug);
   if (idx < 0) return { prev: null, next: null };
   return {
@@ -129,9 +136,9 @@ export function getAdjacentArticles(slug: string): {
   };
 }
 
-export function getAllTags(): { tag: string; count: number }[] {
+export async function getAllTags(): Promise<{ tag: string; count: number }[]> {
   const map = new Map<string, number>();
-  for (const a of getArticleSummaries()) {
+  for (const a of await getArticleSummaries()) {
     for (const tag of a.tags) {
       map.set(tag, (map.get(tag) || 0) + 1);
     }
@@ -141,9 +148,9 @@ export function getAllTags(): { tag: string; count: number }[] {
     .sort((a, b) => b.count - a.count);
 }
 
-export function getAllCategories(): { name: string; slug: string; count: number }[] {
+export async function getAllCategories(): Promise<{ name: string; slug: string; count: number }[]> {
   const map = new Map<string, { name: string; count: number }>();
-  for (const a of getArticleSummaries()) {
+  for (const a of await getArticleSummaries()) {
     const prev = map.get(a.categorySlug);
     map.set(a.categorySlug, {
       name: a.category,
@@ -157,12 +164,13 @@ export function getAllCategories(): { name: string; slug: string; count: number 
   }));
 }
 
-export function searchArticles(query: string): ArticleSummary[] {
+export async function searchArticles(query: string): Promise<ArticleSummary[]> {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const terms = q.split(/\s+/).filter(Boolean);
+  const fullBySlug = new Map((await allEffective()).map((a) => [a.slug, a]));
 
-  return getArticleSummaries()
+  return (await getArticleSummaries())
     .map((a) => {
       const hay = [
         a.title,
@@ -176,8 +184,7 @@ export function searchArticles(query: string): ArticleSummary[] {
         .toLowerCase();
 
       // Also search full content when available
-      const full = getArticleBySlug(a.slug);
-      const contentHay = (full?.contentText || "").toLowerCase();
+      const contentHay = (fullBySlug.get(a.slug)?.contentText || "").toLowerCase();
       const blob = `${hay} ${contentHay}`;
 
       let score = 0;

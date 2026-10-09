@@ -26,15 +26,15 @@ import { AdSlot } from "@/components/ui/AdSlot";
 import { AffiliateBlock } from "@/components/ui/AffiliateBlock";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 // Artigo duplicado — mantido em content/ como "draft" e redirecionado via next.config.ts.
 const EXCLUDED_SLUGS = new Set([
   "o-templo-fisico-como-a-postura-diaria-afeta-sua-energia-vital-2",
 ]);
 
-export function generateStaticParams() {
-  return getAllSlugs()
+export async function generateStaticParams() {
+  return (await getAllSlugs())
     .filter((slug) => !EXCLUDED_SLUGS.has(slug))
     .map((slug) => ({ slug }));
 }
@@ -45,8 +45,11 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
-  if (!article) return {};
+  const article = await getArticleBySlug(slug);
+  // rascunho/agendado não pode vazar título nem ser indexado
+  if (!article || article.status !== "published") {
+    return { robots: { index: false, follow: false } };
+  }
   return buildPageMetadata({
     title: article.seo.title,
     description: article.seo.description,
@@ -63,11 +66,11 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article || article.status !== "published") notFound();
 
-  const related = getRelatedArticles(article, 3);
-  const { prev, next } = getAdjacentArticles(slug);
+  const related = await getRelatedArticles(article, 3);
+  const { prev, next } = await getAdjacentArticles(slug);
   const jsonLd = buildArticleJsonLd(article);
   const author = resolveAuthor(article.author);
   const goldTip = extractGoldTip(article.content, article.goldTip);
@@ -109,7 +112,7 @@ export default async function ArticlePage({
               height={600}
               priority
               sizes="100vw"
-              unoptimized={article.coverImage.endsWith(".svg")}
+              unoptimized={article.coverImage.endsWith(".svg") || article.coverImage.includes("/api/cover-art")}
             />
           </div>
         </div>

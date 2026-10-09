@@ -12,11 +12,23 @@ export type PublishInput = Partial<Article> & {
 };
 
 /**
+ * Na Vercel o disco é somente leitura: não dá para gravar fotos/variantes em
+ * public/. Lá a capa é a arte editorial gerada sob demanda por /api/cover-art.
+ */
+export const canWriteCoverFiles = !process.env.VERCEL;
+
+export function dynamicCoverUrl(a: Pick<Article, "slug" | "title" | "categorySlug">) {
+  return `/api/cover-art?slug=${encodeURIComponent(a.slug)}&title=${encodeURIComponent(
+    a.title
+  )}&cat=${encodeURIComponent(a.categorySlug)}`;
+}
+
+/**
  * Salva artigo e, na publicação, gera capa exclusiva + SEO automaticamente.
  */
 export async function publishArticle(input: PublishInput): Promise<Article> {
   const status = (input.status || "published") as ArticleStatus;
-  const existing = input.slug ? getArticleAdmin(input.slug) : null;
+  const existing = input.slug ? await getArticleAdmin(input.slug) : null;
   const plain = (input.contentText || input.content || "").replace(/<[^>]+>/g, " ");
 
   let seo = input.seo;
@@ -38,7 +50,7 @@ export async function publishArticle(input: PublishInput): Promise<Article> {
     if (!input.excerpt) input.excerpt = built.summary;
   }
 
-  let draft = saveArticle({
+  let draft = await saveArticle({
     ...input,
     contentText: plain,
     seo,
@@ -48,13 +60,21 @@ export async function publishArticle(input: PublishInput): Promise<Article> {
   const needsCover =
     input.regenerateCover ||
     (input.autoCover !== false &&
-      status === "published" &&
+      status !== "draft" &&
       (!draft.coverVariants ||
         !draft.coverImage ||
         draft.coverImage.includes("hero-bg") ||
         draft.coverImage.includes("/images/covers/saude-")));
 
-  if (needsCover) {
+  if (needsCover && !canWriteCoverFiles) {
+    const isPlaceholder =
+      !draft.coverImage ||
+      draft.coverImage.includes("hero-bg") ||
+      draft.coverImage.includes("/images/covers/saude-");
+    if (isPlaceholder) {
+      draft = await saveArticle({ ...draft, coverImage: dynamicCoverUrl(draft) });
+    }
+  } else if (needsCover) {
     try {
       const pack = await generateCoverPackage({
         slug: draft.slug,
@@ -66,7 +86,7 @@ export async function publishArticle(input: PublishInput): Promise<Article> {
         categorySlug: draft.categorySlug,
         tags: draft.tags,
       });
-      draft = saveArticle({
+      draft = await saveArticle({
         ...draft,
         coverImage: pack.coverImage,
         coverAlt: pack.coverAlt,

@@ -1,6 +1,7 @@
-import { getActiveBanners } from "@/lib/monetization";
+import { getActiveBanners, hydrateMonetization } from "@/lib/monetization";
 
-export function SponsorBanner({ position = "sponsor" }: { position?: string }) {
+export async function SponsorBanner({ position = "sponsor" }: { position?: string }) {
+  await hydrateMonetization();
   const banners = getActiveBanners(position);
   const banner = banners[0];
 

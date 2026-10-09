@@ -5,10 +5,10 @@ import { siteConfig } from "@/lib/site";
 import { ArticleCard } from "@/components/ui/ArticleCard";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
-export function generateStaticParams() {
-  return getAllCategories().map((c) => ({ slug: c.slug }));
+export async function generateStaticParams() {
+  return (await getAllCategories()).map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +18,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cat = siteConfig.categories.find((c) => c.slug === slug) ||
-    getAllCategories().find((c) => c.slug === slug);
+    (await getAllCategories()).find((c) => c.slug === slug);
   if (!cat) return {};
   return buildPageMetadata({
     title: cat.name,
@@ -33,10 +33,10 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const articles = getArticlesByCategory(slug);
+  const articles = await getArticlesByCategory(slug);
   const cat =
     siteConfig.categories.find((c) => c.slug === slug) ||
-    getAllCategories().find((c) => c.slug === slug);
+    (await getAllCategories()).find((c) => c.slug === slug);
   if (!cat || !articles.length) notFound();
 
   return (

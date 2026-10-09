@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
 import { getArticleAdmin, saveArticle } from "@/lib/cms";
 import { generateCoverPackage } from "@/lib/cover-ai";
+import { canWriteCoverFiles, dynamicCoverUrl } from "@/lib/publish";
+import { revalidatePath } from "next/cache";
+
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) {
@@ -13,9 +17,20 @@ export async function POST(req: NextRequest) {
     const slug = String(body.slug || "");
     if (!slug) return NextResponse.json({ error: "Slug obrigatório" }, { status: 400 });
 
-    const article = getArticleAdmin(slug);
+    const article = await getArticleAdmin(slug);
     if (!article) {
       return NextResponse.json({ error: "Artigo não encontrado" }, { status: 404 });
+    }
+
+    if (!canWriteCoverFiles) {
+      // Produção: disco somente leitura — usa a arte editorial dinâmica.
+      const updatedProd = await saveArticle({ ...article, coverImage: dynamicCoverUrl(article) });
+      revalidatePath("/", "layout");
+      return NextResponse.json({
+        ok: true,
+        article: updatedProd,
+        cover: { coverImage: updatedProd.coverImage },
+      });
     }
 
     const pack = await generateCoverPackage(
@@ -32,7 +47,7 @@ export async function POST(req: NextRequest) {
       { forceSeed: body.forceNew ? Date.now() : undefined }
     );
 
-    const updated = saveArticle({
+    const updated = await saveArticle({
       ...article,
       coverImage: pack.coverImage,
       coverAlt: pack.coverAlt,

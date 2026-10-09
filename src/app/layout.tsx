@@ -6,7 +6,7 @@ import { AnalyticsProvider } from "@/components/providers/AnalyticsProvider";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { siteConfig, analyticsConfig } from "@/lib/site";
 import { buildWebsiteJsonLd } from "@/lib/seo";
-import { getMonetization } from "@/lib/monetization";
+import { getMonetization, hydrateMonetization } from "@/lib/monetization";
 import "./globals.css";
 import "./cinematic.css";
 
@@ -66,8 +66,9 @@ export const metadata: Metadata = {
   alternates: { canonical: siteConfig.url, types: { "application/rss+xml": "/rss.xml" } },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = buildWebsiteJsonLd();
+  await hydrateMonetization();
   const adsense = getMonetization().adsense;
   const adsenseClient = adsense.clientId || analyticsConfig.adsenseClient || "";
 

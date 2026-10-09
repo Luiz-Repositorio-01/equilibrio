@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const slug = body.slug ? String(body.slug) : "";
 
     const source = slug
-      ? getArticleAdmin(slug)
+      ? await getArticleAdmin(slug)
       : {
           title: String(body.title || ""),
           subtitle: String(body.subtitle || ""),
@@ -62,9 +62,9 @@ export async function POST(req: NextRequest) {
     if (mode === "alt" || mode === "all") result.coverAlt = built.coverAlt;
 
     if (slug && body.persist) {
-      const article = getArticleAdmin(slug);
+      const article = await getArticleAdmin(slug);
       if (article) {
-        const updated = saveArticle({
+        const updated = await saveArticle({
           ...article,
           excerpt: mode === "summary" || mode === "all" ? built.summary : article.excerpt,
           coverAlt: mode === "alt" || mode === "all" ? built.coverAlt : article.coverAlt,

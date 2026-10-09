@@ -1,14 +1,15 @@
 import { analyticsConfig } from "@/lib/site";
-import { getMonetization } from "@/lib/monetization";
+import { getMonetization, hydrateMonetization } from "@/lib/monetization";
 
-export const revalidate = 3600;
+export const revalidate = 600;
 
 /**
  * ads.txt dinâmico para o Google AdSense.
  * Lê o publisher ID da monetização (CMS) ou da env NEXT_PUBLIC_ADSENSE_CLIENT.
  * Formato aceito: "ca-pub-XXXXXXXXXXXXXXXX".
  */
-export function GET() {
+export async function GET() {
+  await hydrateMonetization();
   const raw =
     (getMonetization().adsense?.clientId || analyticsConfig.adsenseClient || "").trim();
   // ads.txt usa "pub-XXXX" (sem o prefixo "ca-")

@@ -19,7 +19,7 @@ export function FeaturedArticle({ article }: { article: ArticleSummary }) {
           height={600}
           priority
           sizes="(max-width: 860px) 100vw, 55vw"
-          unoptimized={article.coverImage.endsWith(".svg")}
+          unoptimized={article.coverImage.endsWith(".svg") || article.coverImage.includes("/api/cover-art")}
         />
       </Link>
       <div className="featured__body">

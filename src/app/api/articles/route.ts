@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { isAuthenticated } from "@/lib/auth";
 import { deleteArticle, getArticleAdmin, listArticlesAdmin, slugify } from "@/lib/cms";
 import { publishArticle } from "@/lib/publish";
 import type { ArticleStatus } from "@/lib/types";
+
+export const maxDuration = 60;
 
 export async function GET() {
   if (!(await isAuthenticated())) {
@@ -53,6 +56,8 @@ export async function POST(req: NextRequest) {
       autoSeo: body.autoSeo !== false,
       regenerateCover: Boolean(body.regenerateCover),
     });
+    // Faz home, listas, categorias, RSS e sitemap enxergarem o artigo na hora.
+    revalidatePath("/", "layout");
     return NextResponse.json({ article });
   } catch (e) {
     return NextResponse.json(
@@ -68,9 +73,17 @@ export async function DELETE(req: NextRequest) {
   }
   const slug = req.nextUrl.searchParams.get("slug");
   if (!slug) return NextResponse.json({ error: "Slug obrigatório" }, { status: 400 });
-  if (!getArticleAdmin(slug)) {
+  if (!(await getArticleAdmin(slug))) {
     return NextResponse.json({ error: "Artigo não encontrado" }, { status: 404 });
   }
-  deleteArticle(slug);
-  return NextResponse.json({ ok: true });
+  try {
+    await deleteArticle(slug);
+    revalidatePath("/", "layout");
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Erro ao excluir" },
+      { status: 500 }
+    );
+  }
 }

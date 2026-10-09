@@ -2,10 +2,12 @@ import type { MetadataRoute } from "next";
 import { getAllCategories, getAllTags, getArticleSummaries } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const articles = getArticleSummaries();
-  const categories = getAllCategories();
-  const tags = getAllTags();
+export const revalidate = 300;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const articles = await getArticleSummaries();
+  const categories = await getAllCategories();
+  const tags = await getAllTags();
 
   const staticRoutes: MetadataRoute.Sitemap = [
     "",

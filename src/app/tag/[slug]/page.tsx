@@ -4,10 +4,10 @@ import { getAllTags, getArticlesByTag } from "@/lib/articles";
 import { ArticleCard } from "@/components/ui/ArticleCard";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
-export function generateStaticParams() {
-  return getAllTags().map((t) => ({ slug: t.tag }));
+export async function generateStaticParams() {
+  return (await getAllTags()).map((t) => ({ slug: t.tag }));
 }
 
 export async function generateMetadata({
@@ -31,7 +31,7 @@ export default async function TagPage({
 }) {
   const { slug } = await params;
   const tag = decodeURIComponent(slug);
-  const articles = getArticlesByTag(tag);
+  const articles = await getArticlesByTag(tag);
   if (!articles.length) notFound();
 
   return (

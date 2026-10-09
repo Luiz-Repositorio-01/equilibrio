@@ -3,6 +3,7 @@ import path from "path";
 import type { AdSlotConfig, Article, ArticleSummary, NewsletterLead, SiteMetrics } from "./types";
 import { siteConfig } from "./site";
 import { loadMetricsFromBlob, saveMetricsToBlob } from "./metrics-blob";
+import { blobEnabled, blobListJson, blobReadJson, blobWriteJson } from "./blob-json";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const ARTICLES_DIR = path.join(CONTENT_DIR, "articles");
@@ -11,26 +12,49 @@ const LEADS_PATH = path.join(CONTENT_DIR, "data", "newsletter.json");
 const METRICS_PATH = path.join(CONTENT_DIR, "data", "metrics.json");
 const ADS_PATH = path.join(CONTENT_DIR, "data", "ads.json");
 
+const BLOB_ARTICLE_PREFIX = "cms/articles/";
+const BLOB_ADS = "cms/ads.json";
+const CACHE_TTL_MS = 15_000;
+
 function ensureDirs() {
-  fs.mkdirSync(path.join(CONTENT_DIR, "data"), { recursive: true });
-  fs.mkdirSync(ARTICLES_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(path.join(CONTENT_DIR, "data"), { recursive: true });
+    fs.mkdirSync(ARTICLES_DIR, { recursive: true });
+  } catch {
+    // filesystem somente leitura (Vercel) — diretórios já vêm empacotados no deploy
+  }
 }
 
 function readJson<T>(filePath: string, fallback: T): T {
   ensureDirs();
   if (!fs.existsSync(filePath)) return fallback;
-  const raw = fs.readFileSync(filePath, "utf-8").replace(/^\uFEFF/, "");
+  const raw = fs.readFileSync(filePath, "utf-8").replace(/^﻿/, "");
   return JSON.parse(raw) as T;
 }
 
-function writeJson(filePath: string, data: unknown) {
+/** Retorna false quando o disco é somente leitura (Vercel); persistência real vai pelo Blob. */
+function writeJson(filePath: string, data: unknown): boolean {
   try {
     ensureDirs();
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    return true;
   } catch {
-    // Vercel's production filesystem is read-only; callers still get the
-    // freshly computed in-memory data, only the on-disk cache is skipped.
+    return false;
   }
+}
+
+/** Data de hoje no fuso de Brasília (YYYY-MM-DD). */
+export function todayBR() {
+  return new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+/** datetime-local (sem fuso) é horário de Brasília; ISO com fuso é mantido. */
+export function normalizeScheduledFor(value?: string): string | undefined {
+  const v = (value || "").trim();
+  if (!v) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v)) return `${v}:00-03:00`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return `${v}T00:00:00-03:00`;
+  return v;
 }
 
 function toSummary(article: Article): ArticleSummary {
@@ -64,21 +88,66 @@ function toSummary(article: Article): ArticleSummary {
   };
 }
 
+type StoredArticle = Article & { deleted?: boolean };
+
+let articlesCache: { at: number; items: Article[] } | null = null;
+
+export function invalidateArticleCache() {
+  articlesCache = null;
+}
+
+function readFsArticles(): Article[] {
+  ensureDirs();
+  if (!fs.existsSync(ARTICLES_DIR)) return [];
+  const out: Article[] = [];
+  for (const f of fs.readdirSync(ARTICLES_DIR)) {
+    if (!f.endsWith(".json")) continue;
+    try {
+      out.push(readJson<Article>(path.join(ARTICLES_DIR, f), null as unknown as Article));
+    } catch (err) {
+      console.error(`[cms] artigo ilegível: ${f}`, err);
+    }
+  }
+  return out.filter(Boolean);
+}
+
+/**
+ * Todos os artigos (brutos, qualquer status): arquivos do repositório
+ * + camada do Blob (artigos novos/editados pelo admin em produção).
+ * O Blob sempre prevalece sobre o arquivo empacotado no deploy.
+ */
+export async function loadAllArticles(opts?: { fresh?: boolean }): Promise<Article[]> {
+  if (!opts?.fresh && articlesCache && Date.now() - articlesCache.at < CACHE_TTL_MS) {
+    return articlesCache.items;
+  }
+
+  const bySlug = new Map<string, Article>();
+  for (const a of readFsArticles()) bySlug.set(a.slug, a);
+
+  for (const a of await blobListJson<StoredArticle>(BLOB_ARTICLE_PREFIX)) {
+    if (!a?.slug) continue;
+    if (a.deleted) bySlug.delete(a.slug);
+    else bySlug.set(a.slug, a);
+  }
+
+  const items = [...bySlug.values()].sort(
+    (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt)
+  );
+  articlesCache = { at: Date.now(), items };
+  return items;
+}
+
+/** Mantém content/index.json em dia quando o disco é gravável (dev local). */
 function rebuildIndex() {
-  const files = fs.readdirSync(ARTICLES_DIR).filter((f) => f.endsWith(".json"));
-  const summaries = files.map((f) => {
-    const article = readJson<Article>(path.join(ARTICLES_DIR, f), null as unknown as Article);
-    return toSummary(article);
-  });
+  const summaries = readFsArticles().map(toSummary);
   summaries.sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
   writeJson(INDEX_PATH, summaries);
-  return summaries;
 }
 
 export function slugify(text: string) {
   return text
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/[\s_]+/g, "-")
@@ -87,21 +156,30 @@ export function slugify(text: string) {
     .slice(0, 80);
 }
 
-export function listArticlesAdmin(): ArticleSummary[] {
-  return rebuildIndex();
+export async function listArticlesAdmin(): Promise<ArticleSummary[]> {
+  return (await loadAllArticles({ fresh: true })).map(toSummary);
 }
 
-export function getArticleAdmin(slug: string): Article | null {
-  const filePath = path.join(ARTICLES_DIR, `${slug}.json`);
-  if (!fs.existsSync(filePath)) return null;
-  return readJson<Article>(filePath, null as unknown as Article);
+export async function getArticleAdmin(slug: string): Promise<Article | null> {
+  return (await loadAllArticles({ fresh: true })).find((a) => a.slug === slug) || null;
 }
 
-export function saveArticle(input: Partial<Article> & { title: string; content: string }) {
+export async function saveArticle(input: Partial<Article> & { title: string; content: string }) {
   ensureDirs();
-  const now = new Date().toISOString().slice(0, 10);
-  const existing = input.slug ? getArticleAdmin(input.slug) : null;
+  const now = todayBR();
   const slug = input.slug || slugify(input.title);
+  const existing = await getArticleAdmin(slug);
+
+  const status = (input.status || "published") as Article["status"];
+  const scheduledFor =
+    status === "scheduled" ? normalizeScheduledFor(input.scheduledFor) : undefined;
+  if (status === "scheduled" && (!scheduledFor || Number.isNaN(+new Date(scheduledFor)))) {
+    throw new Error("Informe a data e a hora do agendamento.");
+  }
+
+  let publishedAt = input.publishedAt || existing?.publishedAt || now;
+  if (status === "scheduled") publishedAt = scheduledFor!.slice(0, 10);
+  else if (status === "published" && publishedAt > now) publishedAt = now;
 
   const article: Article = {
     id: existing?.id || `art-${Date.now()}`,
@@ -124,24 +202,24 @@ export function saveArticle(input: Partial<Article> & { title: string; content: 
     coverDescription: input.coverDescription ?? existing?.coverDescription,
     coverVariants: input.coverVariants ?? existing?.coverVariants,
     coverMeta: input.coverMeta ?? existing?.coverMeta,
-    publishedAt: input.publishedAt || existing?.publishedAt || now,
+    publishedAt,
     updatedAt: now,
     readingTime:
       input.readingTime ||
       Math.max(1, Math.round((input.content.replace(/<[^>]+>/g, " ").split(/\s+/).length || 200) / 200)),
     featured: Boolean(input.featured),
-    status: input.status || "published",
+    status,
     views: existing?.views || 0,
     likes: existing?.likes || 0,
     seo: input.seo ||
       existing?.seo || {
-        title: `${input.title} | ${siteConfig.name}`,
+        title: input.title,
         description: (input.excerpt || input.content.replace(/<[^>]+>/g, "")).slice(0, 160),
         keywords: input.tags || ["bem-estar"],
       },
     toc: input.toc || [],
     faq: input.faq || [],
-    scheduledFor: input.scheduledFor,
+    scheduledFor,
     audioUrl: input.audioUrl || existing?.audioUrl || "",
     goldTip: input.goldTip || existing?.goldTip || "",
     sourceFile: existing?.sourceFile,
@@ -156,15 +234,42 @@ export function saveArticle(input: Partial<Article> & { title: string; content: 
     }));
   }
 
-  writeJson(path.join(ARTICLES_DIR, `${slug}.json`), article);
-  rebuildIndex();
+  const savedToDisk = writeJson(path.join(ARTICLES_DIR, `${slug}.json`), article);
+  if (savedToDisk) rebuildIndex();
+  if (blobEnabled()) {
+    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}.json`, article);
+  } else if (!savedToDisk) {
+    throw new Error(
+      "Não foi possível salvar: armazenamento indisponível (configure BLOB_READ_WRITE_TOKEN na Vercel)."
+    );
+  }
+  invalidateArticleCache();
   return article;
 }
 
-export function deleteArticle(slug: string) {
+export async function deleteArticle(slug: string) {
   const filePath = path.join(ARTICLES_DIR, `${slug}.json`);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  rebuildIndex();
+  let removedFromDisk = false;
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      removedFromDisk = true;
+    }
+  } catch {
+    // filesystem somente leitura
+  }
+  if (removedFromDisk) rebuildIndex();
+  if (blobEnabled()) {
+    // "tombstone": esconde também o arquivo que veio empacotado no deploy
+    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}.json`, {
+      slug,
+      deleted: true,
+      deletedAt: new Date().toISOString(),
+    });
+  } else if (!removedFromDisk && fs.existsSync(filePath)) {
+    throw new Error("Não foi possível excluir: armazenamento indisponível.");
+  }
+  invalidateArticleCache();
 }
 
 export function addNewsletterLead(email: string, source = "site") {
@@ -200,12 +305,24 @@ export function getDefaultAdSlots(): AdSlotConfig[] {
   ];
 }
 
-export function getAdSlots() {
-  return readJson<AdSlotConfig[]>(ADS_PATH, getDefaultAdSlots());
+let adsCache: { at: number; data: AdSlotConfig[] } | null = null;
+
+export async function getAdSlots(): Promise<AdSlotConfig[]> {
+  if (adsCache && Date.now() - adsCache.at < CACHE_TTL_MS) return adsCache.data;
+  const remote = await blobReadJson<AdSlotConfig[]>(BLOB_ADS);
+  const data =
+    Array.isArray(remote) && remote.length
+      ? remote
+      : readJson<AdSlotConfig[]>(ADS_PATH, getDefaultAdSlots());
+  adsCache = { at: Date.now(), data };
+  return data;
 }
 
-export function saveAdSlots(slots: AdSlotConfig[]) {
-  writeJson(ADS_PATH, slots);
+export async function saveAdSlots(slots: AdSlotConfig[]) {
+  const savedToDisk = writeJson(ADS_PATH, slots);
+  if (blobEnabled()) await blobWriteJson(BLOB_ADS, slots);
+  else if (!savedToDisk) throw new Error("Não foi possível salvar: armazenamento indisponível.");
+  adsCache = { at: Date.now(), data: slots };
   return slots;
 }
 
@@ -276,7 +393,7 @@ export async function getMetrics(): Promise<SiteMetrics> {
   const metrics = await hydrateRealMetrics();
 
   const publishedBySlug = new Map(
-    listArticlesAdmin()
+    (await listArticlesAdmin())
       .filter((a) => a.status === "published")
       .map((a) => [a.slug, a.title])
   );

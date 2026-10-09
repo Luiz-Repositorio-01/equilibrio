@@ -19,12 +19,12 @@ import {
 import { AdSlot } from "@/components/ui/AdSlot";
 import { Reveal } from "@/components/cinema/Reveal";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
-export default function HomePage() {
-  const featured = getFeaturedArticle();
-  const popular = getPopularArticles(6);
-  const recent = getRecentArticles(12);
+export default async function HomePage() {
+  const featured = await getFeaturedArticle();
+  const popular = await getPopularArticles(6);
+  const recent = await getRecentArticles(12);
   const daily = getTodaysReflection();
 
   return (

@@ -14,6 +14,7 @@ import type {
 } from "./types";
 import { getAdSlots, getMetrics, getNewsletterLeads, listArticlesAdmin } from "./cms";
 import { analyticsConfig } from "./site";
+import { blobEnabled, blobReadJson, blobWriteJson } from "./blob-json";
 
 const DATA_PATH = path.join(process.cwd(), "content", "data", "monetization.json");
 
@@ -77,14 +78,51 @@ function readJson<T>(fallback: T): T {
   return { ...fallback, ...JSON.parse(raw) } as T;
 }
 
+const BLOB_PATH = "cms/monetization.json";
+const CACHE_TTL_MS = 10_000;
+
+/** Cache em memória (preenchido do Blob por hydrateMonetization) — mantém a API síncrona. */
+let monCache: { at: number; data: Partial<MonetizationState> } | null = null;
+let monDirty = false;
+let monDiskOk = true;
+
 function writeJson(data: MonetizationState) {
+  monCache = { at: Date.now(), data };
+  monDirty = true;
   try {
     ensureDir();
     fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), "utf-8");
+    monDiskOk = true;
   } catch {
-    // Vercel's production filesystem is read-only; the in-memory state
-    // returned to the caller still reflects the save, only the on-disk
-    // copy is skipped.
+    // Vercel: filesystem somente leitura — a persistência real é o Blob (flushMonetization).
+    monDiskOk = false;
+  }
+}
+
+/** Carrega a monetização salva no Blob. Chame (await) antes de ler em páginas/rotas. */
+export async function hydrateMonetization() {
+  if (!blobEnabled()) return;
+  if (monCache && !monDirty && Date.now() - monCache.at < CACHE_TTL_MS) return;
+  if (monDirty) return;
+  const remote = await blobReadJson<Partial<MonetizationState>>(BLOB_PATH);
+  if (remote) monCache = { at: Date.now(), data: remote };
+  else if (!monCache) monCache = { at: Date.now(), data: {} };
+}
+
+/** Persiste no Blob o que foi salvo nesta requisição. Chame (await) ao final das rotas de escrita. */
+export async function flushMonetization() {
+  if (!monDirty) return;
+  if (blobEnabled()) {
+    await blobWriteJson(BLOB_PATH, monCache?.data ?? {});
+  } else if (!monDiskOk) {
+    throw new Error("Não foi possível salvar: armazenamento indisponível.");
+  }
+  monDirty = false;
+  try {
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/", "layout");
+  } catch {
+    // fora de contexto de requisição
   }
 }
 
@@ -106,7 +144,7 @@ export function getDefaultMonetization(): MonetizationState {
 
 export function getMonetization(): MonetizationState {
   const base = getDefaultMonetization();
-  const stored = readJson<Partial<MonetizationState>>(base);
+  const stored = monCache ? { ...base, ...monCache.data } : readJson<Partial<MonetizationState>>(base);
   return {
     adsense: { ...base.adsense, ...stored.adsense },
     adManager: {
@@ -314,9 +352,10 @@ export function updateSetupStep(step: SetupStepId, done: boolean) {
 
 export async function syncSetupProgress() {
   const state = getMonetization();
+  const before = JSON.stringify(state);
   const metrics = await getMetrics();
-  const articles = listArticlesAdmin().filter((a) => a.status === "published");
-  const slots = getAdSlots();
+  const articles = (await listArticlesAdmin()).filter((a) => a.status === "published");
+  const slots = await getAdSlots();
   const leads = getNewsletterLeads();
 
   state.setup.steps.ga4 = state.setup.steps.ga4 || Boolean(analyticsConfig.ga4Id);
@@ -341,7 +380,8 @@ export async function syncSetupProgress() {
   if (allDone && !state.setup.completedAt) {
     state.setup.completedAt = new Date().toISOString();
   }
-  return saveMonetization(state);
+  // só persiste quando algo mudou (evita gravar no Blob a cada visita ao admin)
+  return JSON.stringify(state) === before ? state : saveMonetization(state);
 }
 
 export function getActiveBanners(position?: string) {
@@ -407,7 +447,7 @@ export async function getRevenueDashboard() {
     }
   }
 
-  const articles = listArticlesAdmin();
+  const articles = await listArticlesAdmin();
   const topRevenueArticles = [...byArticle.values()]
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 8)

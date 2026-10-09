@@ -10,7 +10,7 @@ export default async function EditArtigoPage({
 }) {
   if (!(await isAuthenticated())) redirect("/admin/login");
   const { slug } = await params;
-  const article = getArticleAdmin(slug);
+  const article = await getArticleAdmin(slug);
   if (!article) notFound();
   return <ArticleEditor article={article} />;
 }

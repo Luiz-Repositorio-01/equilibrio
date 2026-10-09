@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
-import { formatBRL, getMonetization, getRevenueDashboard, syncSetupProgress } from "@/lib/monetization";
+import {
+  flushMonetization,
+  formatBRL,
+  getMonetization,
+  getRevenueDashboard,
+  hydrateMonetization,
+  syncSetupProgress,
+} from "@/lib/monetization";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export default async function MonetizacaoHubPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
+  await hydrateMonetization();
   await syncSetupProgress();
+  await flushMonetization();
   const state = getMonetization();
   const revenue = await getRevenueDashboard();
   const setupDone = Object.values(state.setup.steps).filter(Boolean).length;

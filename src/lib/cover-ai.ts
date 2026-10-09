@@ -1136,7 +1136,8 @@ export function buildSeoFromArticle(input: {
     input.tags || []
   );
   return {
-    seoTitle: `${input.title} | ${siteName}`,
+    // o layout já acrescenta " | SAÚDE INTEGRAL" via title.template
+    seoTitle: input.title,
     metaDescription,
     keywords,
     summary: summary.slice(0, 280),

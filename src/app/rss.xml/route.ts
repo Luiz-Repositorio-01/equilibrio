@@ -1,10 +1,10 @@
 import { getArticleSummaries } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export async function GET() {
-  const articles = getArticleSummaries().slice(0, 50);
+  const articles = await (await getArticleSummaries()).slice(0, 50);
   const items = articles
     .map(
       (a) => `
@@ -35,7 +35,7 @@ export async function GET() {
   return new Response(xml, {
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
-      "Cache-Control": "s-maxage=3600, stale-while-revalidate",
+      "Cache-Control": "s-maxage=300, stale-while-revalidate",
     },
   });
 }

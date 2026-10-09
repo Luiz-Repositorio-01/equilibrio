@@ -1,4 +1,4 @@
-import { getMonetization } from "@/lib/monetization";
+import { getMonetization, hydrateMonetization } from "@/lib/monetization";
 import { getAdSlots } from "@/lib/cms";
 import { analyticsConfig } from "@/lib/site";
 
@@ -9,7 +9,7 @@ const ADSENSE_STATUS_LABEL: Record<string, string> = {
   ativo: "Ativo",
 };
 
-export function AdSlot({
+export async function AdSlot({
   id,
   label = "Espaço publicitário",
   minHeight = 90,
@@ -18,8 +18,9 @@ export function AdSlot({
   label?: string;
   minHeight?: number;
 }) {
+  await hydrateMonetization();
   const monetization = getMonetization();
-  const slots = getAdSlots();
+  const slots = await getAdSlots();
   const slot = slots.find((s) => s.id === id);
   const enabled = slot?.enabled !== false;
   const adsense = monetization.adsense;

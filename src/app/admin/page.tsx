@@ -4,8 +4,10 @@ import { isAuthenticated } from "@/lib/auth";
 import { getMetrics, getNewsletterLeads, listArticlesAdmin } from "@/lib/cms";
 import {
   formatBRL,
+  flushMonetization,
   getMonetization,
   getRevenueDashboard,
+  hydrateMonetization,
   syncSetupProgress,
 } from "@/lib/monetization";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -13,10 +15,12 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 export default async function AdminDashboardPage() {
   if (!(await isAuthenticated())) redirect("/admin/login");
 
+  await hydrateMonetization();
   const metrics = await getMetrics();
-  const articles = listArticlesAdmin();
+  const articles = await listArticlesAdmin();
   const leads = getNewsletterLeads();
   const setup = (await syncSetupProgress()).setup;
+  await flushMonetization();
   const monetization = getMonetization();
   const revenue = await getRevenueDashboard();
   const published = articles.filter((a) => a.status === "published");

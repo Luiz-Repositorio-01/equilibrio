@@ -53,15 +53,21 @@ export function ArticleEditor({ article }: { article?: Article }) {
       autoSeo: true,
     };
 
-    const res = await fetch("/api/articles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setStatus("error");
+        setError(data.error || `Erro ao salvar (HTTP ${res.status}). Tente novamente.`);
+        return;
+      }
+    } catch {
       setStatus("error");
-      setError(data.error || "Erro ao salvar");
+      setError("Sem conexão com o servidor. Seu texto continua na tela — tente novamente.");
       return;
     }
     router.push("/admin/artigos");

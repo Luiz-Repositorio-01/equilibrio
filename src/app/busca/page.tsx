@@ -15,7 +15,7 @@ export default async function BuscaPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const results = q ? searchArticles(q) : [];
+  const results = q ? await searchArticles(q) : [];
 
   return (
     <section className="section">

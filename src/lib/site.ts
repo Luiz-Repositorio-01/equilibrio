@@ -9,12 +9,11 @@ export const siteConfig = {
   locale: "pt_BR",
   language: "pt-BR",
   author: "Antonio Paulo Tavares Pereira",
-  authorRole: "Autor e curador",
+  authorRole: "Fundador & Idealizador do Portal Saúde Integral",
   /** Preencha quando a foto oficial estiver disponível */
   authorPhoto: "/assets/brand/author-photo.jpg",
-  /** Preencha a bio oficial — espaço reservado no site */
   authorBio:
-    "Espaço reservado para a biografia do autor. Em breve, uma apresentação completa sobre a trajetória, a visão e o propósito por trás do SAÚDE INTEGRAL.",
+    "Antonio Paulo criou o Portal Saúde Integral a partir de uma busca pessoal por mais equilíbrio, leveza e paz interior no meio da correria do cotidiano. Sem a pretensão de ser um especialista ou mestre espiritual, sua missão é atuar como um facilitador: pesquisar, organizar e compartilhar práticas acessíveis sobre espiritualidade, bem-estar e presença plena.",
   email: "contato@equilibriointegral.com.br",
   themeColor: "#0D4A4A",
   logo: "/assets/brand/logo-saude-integral.png",

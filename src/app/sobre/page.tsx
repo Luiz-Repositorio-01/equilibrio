@@ -1,6 +1,7 @@
 import { siteConfig } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/seo";
 import Link from "next/link";
+import { authorInitials, getAllAuthorProfiles } from "@/lib/authors";
 
 export const metadata = buildPageMetadata({
   title: "Sobre",
@@ -56,28 +57,29 @@ export default function SobrePage() {
           aria-labelledby="autor-title"
         >
           <h2 id="autor-title" className="section__title" style={{ fontSize: "1.75rem" }}>
-            Apresentação
+            Quem está por trás do portal
           </h2>
-          <div className="author-block__inner">
-            <div className="author-block__photo">
-              {/* Espaço reservado para foto oficial do autor */}
-              <div className="author-block__placeholder" aria-label="Espaço reservado para foto do autor">
-                <span>Foto do autor</span>
-                <small>Adicione em /assets/brand/author-photo.jpg</small>
+          {getAllAuthorProfiles().map((author) => (
+            <article key={author.slug} id={author.slug} className="author-block__inner">
+              <div className="author-block__photo">
+                <div className="author-block__avatar" aria-hidden="true">
+                  {authorInitials(author.name)}
+                </div>
               </div>
-            </div>
-            <div className="author-block__copy">
-              <p className="author-block__role">{siteConfig.authorRole}</p>
-              <h3 className="author-block__name">{siteConfig.author}</h3>
-              <p className="author-block__bio">{siteConfig.authorBio}</p>
-              <p className="author-block__pillars">
-                {siteConfig.pillars.join(" · ")}
-              </p>
-              <Link href="/contato" className="btn btn--outline" style={{ marginTop: "1rem" }}>
-                Fale conosco
-              </Link>
-            </div>
-          </div>
+              <div className="author-block__copy">
+                <p className="author-block__role">{author.role}</p>
+                <h3 className="author-block__name">{author.name}</h3>
+                {author.quote && <blockquote className="author-block__quote">“{author.quote}”</blockquote>}
+                <p className="author-block__bio">{author.bio}</p>
+              </div>
+            </article>
+          ))}
+          <p className="author-block__pillars" style={{ marginTop: "1.25rem" }}>
+            {siteConfig.pillars.join(" · ")}
+          </p>
+          <Link href="/contato" className="btn btn--outline" style={{ marginTop: "0.5rem" }}>
+            Fale conosco
+          </Link>
         </section>
       </div>
     </section>

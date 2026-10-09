@@ -1938,3 +1938,37 @@ body.site-cinema .ad-slot {
 .ai-panel--error .ai-panel__head strong {
   color: #ff7b7b;
 }
+
+/* Perfis dos autores (monograma no lugar da foto, até haver foto oficial) */
+.author-block__avatar {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  letter-spacing: 0.06em;
+  color: var(--color-gold, #c9a96e);
+  border: 1px solid rgba(201, 169, 110, 0.55);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(111, 168, 220, 0.2), transparent 55%),
+    var(--surface);
+}
+
+.author-block__quote {
+  margin: 0 0 0.9rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid rgba(201, 169, 110, 0.6);
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--text);
+}
+
+.article-sidebar__photo {
+  border-style: solid;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+  color: var(--color-gold, #c9a96e);
+}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
-import { getAuthorProfile } from "@/lib/authors";
+import { authorInitials, getAuthorProfile } from "@/lib/authors";
 import { AdSlot } from "@/components/ui/AdSlot";
 
 type ArticleSidebarProps = {
@@ -68,14 +68,13 @@ export function ArticleSidebar({
       {author && (
         <div className="article-sidebar__card article-sidebar__author">
           <div className="article-sidebar__photo" aria-hidden="true">
-            {/* Espaço reservado — substituir por foto oficial quando fornecida */}
-            <span>Foto</span>
+            {authorInitials(author.name)}
           </div>
           <div>
             <strong>{author.name}</strong>
             <p className="article-sidebar__role">{author.role}</p>
-            <Link href="/sobre#autor" className="article-sidebar__link">
-              Sobre o autor →
+            <Link href={`/sobre#${author.slug}`} className="article-sidebar__link">
+              Conheça {author.name.split(" ")[0]} →
             </Link>
           </div>
         </div>

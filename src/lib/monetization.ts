@@ -78,7 +78,7 @@ function readJson<T>(fallback: T): T {
   return { ...fallback, ...JSON.parse(raw) } as T;
 }
 
-const BLOB_PATH = "cms/monetization.json";
+const BLOB_PATH = "monetization";
 const CACHE_TTL_MS = 10_000;
 
 /** Cache em memória (preenchido do Blob por hydrateMonetization) — mantém a API síncrona. */

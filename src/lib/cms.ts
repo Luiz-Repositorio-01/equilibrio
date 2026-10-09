@@ -12,8 +12,8 @@ const LEADS_PATH = path.join(CONTENT_DIR, "data", "newsletter.json");
 const METRICS_PATH = path.join(CONTENT_DIR, "data", "metrics.json");
 const ADS_PATH = path.join(CONTENT_DIR, "data", "ads.json");
 
-const BLOB_ARTICLE_PREFIX = "cms/articles/";
-const BLOB_ADS = "cms/ads.json";
+const BLOB_ARTICLE_PREFIX = "article:";
+const BLOB_ADS = "ads";
 const CACHE_TTL_MS = 15_000;
 
 function ensureDirs() {
@@ -237,7 +237,7 @@ export async function saveArticle(input: Partial<Article> & { title: string; con
   const savedToDisk = writeJson(path.join(ARTICLES_DIR, `${slug}.json`), article);
   if (savedToDisk) rebuildIndex();
   if (blobEnabled()) {
-    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}.json`, article);
+    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}`, article);
   } else if (!savedToDisk) {
     throw new Error(
       "Não foi possível salvar: armazenamento indisponível (configure BLOB_READ_WRITE_TOKEN na Vercel)."
@@ -261,7 +261,7 @@ export async function deleteArticle(slug: string) {
   if (removedFromDisk) rebuildIndex();
   if (blobEnabled()) {
     // "tombstone": esconde também o arquivo que veio empacotado no deploy
-    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}.json`, {
+    await blobWriteJson(`${BLOB_ARTICLE_PREFIX}${slug}`, {
       slug,
       deleted: true,
       deletedAt: new Date().toISOString(),

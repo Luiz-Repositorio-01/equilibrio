@@ -66,7 +66,17 @@ export function Footer() {
               Dados protegidos · Cancelamento simples · Conteúdo sem spam
             </span>
             <span className="footer-bottom__credit">
-              Produzido por <strong>Auryx Media Soluções Tecnológicas</strong>. Todos os
+              Produzido por{" "}
+              <a
+                href="https://auryxmedia.com.br/"
+                target="_blank"
+                rel="noopener author"
+                title="Auryx Media — criação de sites e sistemas"
+                style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: "2px" }}
+              >
+                <strong>Auryx Media</strong>
+              </a>
+              {" "}Soluções Tecnológicas. Todos os
               direitos reservados.
             </span>
           </div>

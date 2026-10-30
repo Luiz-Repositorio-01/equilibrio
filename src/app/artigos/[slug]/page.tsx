@@ -24,8 +24,9 @@ import { CommentsPlaceholder } from "@/components/article/CommentsPlaceholder";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { AffiliateBlock } from "@/components/ui/AffiliateBlock";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
-import { siteConfig } from "@/lib/site";
 import { getAuthorProfile } from "@/lib/authors";
+import { getIntegrationBoxes, stripPracticeSection } from "@/lib/articleIntegration";
+import { ArticleIntegrationPanel } from "@/components/article/ArticleIntegrationPanel";
 
 export const revalidate = 300;
 
@@ -78,6 +79,8 @@ export default async function ArticlePage({
   const jsonLd = buildArticleJsonLd(article);
   const profile = getAuthorProfile(article.author);
   const goldTip = extractGoldTip(article.content, article.goldTip);
+  const integration = getIntegrationBoxes(article);
+  const articleBodyHtml = stripPracticeSection(article.content);
   const updated =
     article.updatedAt &&
     article.updatedAt.slice(0, 10) !== article.publishedAt.slice(0, 10);
@@ -111,8 +114,7 @@ export default async function ArticlePage({
             )}
           </div>
           <h1>{article.title}</h1>
-          {article.subtitle && <p className="subtitle">{article.subtitle}</p>}
-          <p style={{ color: "var(--text-muted)", maxWidth: "46rem" }}>{article.excerpt}</p>
+          <ArticleIntegrationPanel boxes={integration} />
           <ShareButtons title={article.title} slug={article.slug} />
           <div className="article-cover">
             <Image
@@ -143,15 +145,7 @@ export default async function ArticlePage({
             />
           )}
 
-          <aside className="article-disclaimer">
-            <p>
-              Texto informativo preparado pela equipe do {siteConfig.name}. Não é consulta
-              médica, psicológica ou nutricional. Sintomas, remédios, dieta restritiva e
-              exercício com dor pedem um profissional de saúde.
-            </p>
-          </aside>
-
-          <ArticleBody content={article.content} />
+          <ArticleBody content={articleBodyHtml} />
 
           {profile && (
             <p className="article-byline">

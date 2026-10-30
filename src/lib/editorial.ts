@@ -1301,6 +1301,336 @@ const EXTRAS: Record<string, Extra> = {
       },
     ],
   },
+  "o-silencio-que-cura": {
+    opening: scope(
+      "Como usar um minuto de silêncio para não responder no impulso. Não baixa pressão, não dissolve aperto no peito e não trata crise de raiva."
+    ),
+    closing: practice(
+      [
+        "Quando a resposta já estiver na ponta da língua, cale por uma respiração antes de enviar a mensagem ou falar.",
+        "Se o corpo estiver quente, saia da conversa por dois minutos: água, janela ou banheiro. Volte só com uma frase.",
+        "A frase pode ser: “preciso pensar e te respondo em uma hora”. Silêncio sem prazo vira sumiço.",
+        "Se o aperto no peito, a falta de ar ou a raiva não passam, procure atendimento. Silêncio não é tratamento.",
+      ],
+      "Este texto não mede batimento nem pressão. A pausa só impede o impulso. O sintoma físico forte fica com o serviço de saúde.",
+      [
+        {
+          href: "/artigos/aprendendo-a-dizer-nao-o-limite-que-protege-a-sua-paz-interior",
+          label: "Como recusar sem ensaiar um discurso",
+        },
+        {
+          href: "/artigos/5-minutos-de-paz-tecnicas-de-relaxamento-para-quem-tem-a-mente-barulhenta",
+          label: "Pausas curtas quando a mente não colabora",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Silêncio cura o estresse?",
+        answer:
+          "Não. Ele interrompe a resposta automática. Estresse que toma a semana pede ajuste de carga e, se preciso, um profissional.",
+      },
+      {
+        question: "Devo engolir o que sinto?",
+        answer:
+          "Não. A pausa serve para falar depois, com uma frase, não para guardar tudo.",
+      },
+      {
+        question: "E se a outra pessoa exigir resposta na hora?",
+        answer:
+          "Repita que você vai responder depois do prazo que deu. Urgência alheia não cria obrigação, salvo risco real.",
+      },
+    ],
+  },
+  "espiritualidade-nos-pequenos-gestos": {
+    opening: scope(
+      "Como achar uma pausa dentro de uma tarefa que você já faz, sem ritual novo e sem promessa de paz permanente."
+    ),
+    closing: practice(
+      [
+        "Escolha uma tarefa de hoje que já existe: lavar uma xícara, dobrar uma peça, regar a planta.",
+        "Faça só essa tarefa até o fim, sem vídeo ao lado.",
+        "No fim, note uma coisa física: a água, o tecido ou a folha. Não precisa nomear isso de espiritualidade.",
+        "Não acrescente um diário, um incenso e uma meditação no mesmo dia. Um gesto repetido vale mais.",
+      ],
+      "Paz nas tarefas simples não apaga luto, conta ou relação ruim. Se a vida comum está insuportável, o passo é ajuda, não mais delicadeza.",
+      [
+        {
+          href: "/artigos/descomplicando-a-espiritualidade-o-que-ela-tem-a-ver-com-a-sua-paz-de-espirito",
+          label: "A pausa de três minutos, sem dogma",
+        },
+        {
+          href: "/artigos/criando-o-seu-santuario-em-casa-passos-simples-para-um-cantinho-de-paz",
+          label: "Como reservar um canto da casa para isso",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Preciso transformar a rotina em ritual sagrado?",
+        answer:
+          "Não. O convite é prestar atenção numa tarefa que já acontece. O nome que você dá a isso fica com você.",
+      },
+      {
+        question: "Isso substitui descanso?",
+        answer:
+          "Não. Lavar a xícara com atenção não recupera uma noite mal dormida.",
+      },
+      {
+        question: "Serve para quem não tem fé?",
+        answer:
+          "Serve. É uma pausa na tarefa, não uma doutrina.",
+      },
+    ],
+  },
+  "pequenos-rituais-de-transicao": {
+    opening: scope(
+      "Como marcar o fim do trabalho e a chegada em casa, para a cabeça não continuar na reunião. Não é decoração nem “limpeza de energia”."
+    ),
+    closing: practice(
+      [
+        "Escolha um gesto de fronteira que caiba em dois minutos: trocar a camisa, lavar o rosto ou guardar a bolsa num lugar fixo.",
+        "Faça esse gesto antes de sentar no sofá ou abrir a rede social.",
+        "Se a reunião ainda estiver na cabeça, escreva uma linha do que fica para amanhã e feche o papel.",
+        "Combine com quem mora com você que esses dois minutos não são ausência. São a chegada.",
+      ],
+      "Ritual de transição não resolve carga de trabalho excessiva. Se o expediente invade a noite todo dia, o ajuste é de horário e de limite, não de vela.",
+      [
+        {
+          href: "/artigos/detox-digital-e-conexao-real-como-desligar-as-telas-cura-a-alma",
+          label: "Como tirar a tela dessa passagem",
+        },
+        {
+          href: "/artigos/criando-o-seu-santuario-em-casa-passos-simples-para-um-cantinho-de-paz",
+          label: "O canto da casa onde a pausa acontece",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Preciso de um banho toda vez que chegar?",
+        answer:
+          "Não. Qualquer gesto curto e repetido marca a fronteira. Banho só se ele já couber na sua casa.",
+      },
+      {
+        question: "E quem trabalha em casa?",
+        answer:
+          "Feche o notebook, saia do cômodo e volte. A fronteira é física, mesmo sem deslocamento.",
+      },
+      {
+        question: "Isso limpa a energia do dia?",
+        answer:
+          "Este texto não afirma isso. O efeito observável é outro: o corpo chega e a lista de amanhã fica escrita, não girando.",
+      },
+    ],
+  },
+  "o-poder-da-escuta-atenta": {
+    opening: scope(
+      "Como ouvir uma pessoa até o fim, numa conversa real. Não promete milagre, não cura relação e não substitui o artigo sobre comunicação difícil."
+    ),
+    closing: practice(
+      [
+        "Na próxima conversa, deixe o celular virado e espere a frase terminar.",
+        "Devolva uma linha do que entendeu, sem conselho: “você está dizendo que a reunião te pegou de surpresa”.",
+        "Pergunte se a pessoa quer ideia ou só escuta. Conselho não pedido vira interrupção.",
+        "Se você não consegue ouvir porque está em perigo ou exausto, diga isso. Escuta não é obrigação ilimitada.",
+      ],
+      "Ouvir melhor aproxima. Não conserta abuso, não substitui terapia de casal e não exige que você concorde.",
+      [
+        {
+          href: "/artigos/relacoes-saudaveis-como-a-comunicacao-constroi-o-bem-estar",
+          label: "Como falar de um assunto difícil sem ganhar a briga",
+        },
+        {
+          href: "/artigos/aprendendo-a-dizer-nao-o-limite-que-protege-a-sua-paz-interior",
+          label: "O limite quando a escuta já passou da conta",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Escuta atenta é concordar?",
+        answer:
+          "Não. É mostrar que você entendeu. A sua posição pode vir depois, em separado.",
+      },
+      {
+        question: "Preciso olhar nos olhos o tempo todo?",
+        answer:
+          "Não. Celular guardado e frase completa já mudam a conversa. Contato visual forçado deixa muita gente tensa.",
+      },
+      {
+        question: "E se a pessoa só desabafa e não muda?",
+        answer:
+          "Escuta não é conserto. Se o mesmo desabafo ocupa todas as noites e te esgota, o limite também faz parte do cuidado.",
+      },
+    ],
+  },
+  "a-arte-de-desacelerar-os-pensamentos-antes-de-dormir": {
+    opening: scope(
+      "O que fazer na cama quando a mente liga depois que a luz apaga. O quarto, o horário e a tela estão no artigo sobre o ritmo do descanso."
+    ),
+    closing: practice(
+      [
+        "Deixe um papel ao lado da cama. Quando o pensamento for uma pendência, escreva uma linha e pare. A cama não é a mesa de planejamento.",
+        "Se o pensamento for ensaio de conversa, diga em voz baixa: “amanhã”. Não resolva a conversa às onze da noite.",
+        "Levante se passar de cerca de vinte minutos acordado. Luz baixa, algo monótono, volte quando o sono aparecer.",
+        "Não use álcool para apagar a mente. Ele piora o meio da noite.",
+      ],
+      "Mente acelerada na cama é comum. Insônia por semanas, ronco com sonolência de dia ou tristeza intensa pedem avaliação, não mais uma técnica.",
+      [
+        {
+          href: "/artigos/o-ritmo-do-descanso-a-ciencia-e-a-arte-do-sono-reparador",
+          label: "Como preparar a última hora e o quarto",
+        },
+        {
+          href: "/artigos/5-minutos-de-paz-tecnicas-de-relaxamento-para-quem-tem-a-mente-barulhenta",
+          label: "Pausas de cinco minutos para quem não esvazia a mente",
+        },
+      ],
+      [{ href: CDC_SONO, label: "Informações públicas sobre sono — CDC" }]
+    ),
+    faq: [
+      {
+        question: "Contar carneirinho funciona?",
+        answer:
+          "Para algumas pessoas, uma tarefa monótona ajuda. Para outras, irrita. O papel ao lado da cama é mais útil quando o pensamento é uma pendência.",
+      },
+      {
+        question: "Preciso meditar para dormir?",
+        answer:
+          "Não. Meditação não é o assunto deste texto. O passo é tirar a pendência da cabeça e não ficar olhando o relógio.",
+      },
+      {
+        question: "Melatonina resolve a mente acelerada?",
+        answer:
+          "Não por este artigo. Suplemento e remédio ficam com um profissional.",
+      },
+    ],
+  },
+  "o-ciclo-do-overthinking": {
+    opening: scope(
+      "Como reconhecer o looping de um pensamento e interrompê-lo com um gesto, sem tratar isso como diagnóstico de ansiedade."
+    ),
+    closing: practice(
+      [
+        "Dê nome ao looping quando ele começar: “estou ensaiando a mesma conversa de novo”.",
+        "Limite o ensaio a cinco minutos com um alarme. Acabou o tempo, levante e faça uma tarefa com as mãos.",
+        "Se o assunto tiver uma ação real, escreva o próximo passo de uma linha e a hora em que você o fará. Sem hora, é ruminação.",
+        "Se o looping toma o sono por semanas ou vem com pânico, procure ajuda. No Brasil, o CVV atende no 188.",
+      ],
+      "Pensar demais não é inteligência nem defeito. Vira problema quando impede dormir, decidir ou descansar. Técnica caseira não substitui cuidado em saúde mental.",
+      [
+        {
+          href: "/artigos/saude-mental-cuidando-da-mente-em-tempos-de-incerteza-e-ansiedade",
+          label: "Quando a preocupação toma o dia inteiro",
+        },
+        {
+          href: "/artigos/a-arte-de-desacelerar-os-pensamentos-antes-de-dormir",
+          label: "O que fazer quando o looping liga na cama",
+        },
+      ],
+      [{ href: OMS_MENTE, label: "Saúde mental — Organização Mundial da Saúde" }]
+    ),
+    faq: [
+      {
+        question: "Overthinking é uma doença?",
+        answer:
+          "Não é um diagnóstico. É um hábito de repetir o mesmo pensamento. Se ele paralisa a vida, um profissional avalia o que mais está acontecendo.",
+      },
+      {
+        question: "Devo parar de pensar?",
+        answer:
+          "Não. Deve limitar o ensaio e transformar em ação o que tiver ação. O resto pode esperar.",
+      },
+      {
+        question: "Escrever o pensamento piora?",
+        answer:
+          "Uma linha com o próximo passo ajuda. Páginas reescrevendo a cena costumam alimentar o looping. Pare na ação.",
+      },
+    ],
+  },
+  "sindrome-da-pressa": {
+    opening: scope(
+      "Por que a sensação de atraso constante aparece e o que cortar nesta semana. Não é um diagnóstico médico chamado síndrome."
+    ),
+    closing: practice(
+      [
+        "Anote três coisas que você trata como urgentes e marque quais têm hora real. O resto é pressa aprendida.",
+        "Chegue a um compromisso sem adiantar o relógio interno: saia no horário que o trajeto pede, não vinte minutos antes por ansiedade, nem atrasado por excesso de tarefas.",
+        "Tire uma notificação que dispara pressa sem consequência: um grupo, um placar, um aplicativo de mensagem no pulso.",
+        "Se a pressa vem com dor no peito, falta de ar ou você não consegue parar nem para comer, procure serviço de saúde.",
+      ],
+      "“Síndrome da pressa” aqui é um nome popular, não uma doença catalogada neste texto. A pressa contínua cobra sono e conversa. O corte de uma urgência falsa já mostra se o dia cabe.",
+      [
+        {
+          href: "/artigos/estresse-no-dia-a-dia-como-reconhecer-os-sinais-e-agir-antes-que-vire-um-problem",
+          label: "Sinais de estresse para reconhecer cedo",
+        },
+        {
+          href: "/artigos/aprendendo-a-dizer-nao-o-limite-que-protege-a-sua-paz-interior",
+          label: "Como recusar o que alimenta a pressa",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Estar sempre atrasado é falta de organização?",
+        answer:
+          "Às vezes é agenda maior do que o dia. Às vezes é tratar tudo como urgente. Separar o que tem hora real já mostra qual dos dois é o seu caso.",
+      },
+      {
+        question: "Preciso de uma agenda nova?",
+        answer:
+          "Não. Riscar uma urgência falsa desta semana vale mais do que um aplicativo.",
+      },
+      {
+        question: "A pressa causa doença?",
+        answer:
+          "Este texto não afirma isso. Pressa contínua piora sono e irritação. Sintoma físico forte precisa de médico, não de um rótulo.",
+      },
+    ],
+  },
+  "o-momento-perfeito-nao-existe": {
+    opening: scope(
+      "Como começar uma coisa pequena com o que você tem hoje, sem esperar o cenário ideal. Não é conselho para ignorar preparo nem para se culpar."
+    ),
+    closing: practice(
+      [
+        "Escolha uma ação que você adiou porque faltava tempo, dinheiro ou disposição perfeita. Reduza ela até caber em quinze minutos.",
+        "Faça esses quinze minutos com o material que já existe. Sem compra nova.",
+        "Pare no fim do tempo, mesmo incompleto. O critério é ter começado, não ter fechado o projeto.",
+        "Se o que você adia é um exame, uma dívida ou um pedido de ajuda, o passo imperfeito é ligar ou agendar, não produzir mais conteúdo sobre coragem.",
+      ],
+      "Começar imperfeito não vale para risco: remédio, investimento, treino com dor ou decisão que afeta outra pessoa. Nesses casos, preparo é cuidado, não perfeccionismo.",
+      [
+        {
+          href: "/artigos/a-importancia-de-criar-uma-rotina-de-bem-estar-sustentavel",
+          label: "Como manter o mínimo quando a semana quebra",
+        },
+        {
+          href: "/artigos/atividade-fisica-na-rotina-o-guia-pratico-para-quem-nao-tem-tempo",
+          label: "Como começar a se mover sem o cenário ideal",
+        },
+      ]
+    ),
+    faq: [
+      {
+        question: "Então eu não devo me planejar?",
+        answer:
+          "Deve, quando o plano cabe no dia. O que este texto recusa é esperar a vida inteira alinhada para dar o primeiro passo de quinze minutos.",
+      },
+      {
+        question: "E se eu começar e fizer mal feito?",
+        answer:
+          "Mal feito e revisável é diferente de mal feito e perigoso. Se o erro tem consequência grave, prepare. Se o erro é só feio, comece.",
+      },
+      {
+        question: "Perfeccionismo é ansiedade?",
+        answer:
+          "Pode acompanhar ansiedade, mas não é o mesmo nome. Se a espera te paralisa a ponto de não dormir ou não trabalhar, procure cuidado. O texto só trata do primeiro passo doméstico.",
+      },
+    ],
+  },
 };
 
 export function polishDescription(text: string): string {

@@ -60,7 +60,15 @@ function enhanceContent(html: string): string {
       /A base da maioria das doenças modernas — desde o cansaço crônico até problemas cardiovasculares e dores articulares — é a inflamação crônica subclínica\./g,
       "Cansaço, pouca variedade no prato e rotina apertada aparecem juntos com frequência. Isso não autoriza dizer que uma inflamação escondida é a causa da maioria das doenças."
     )
-    .replace(/massageia e cura os órgãos internos/gi, "relaxa o abdômen, sem promessa de cura");
+    .replace(/massageia e cura os órgãos internos/gi, "relaxa o abdômen, sem promessa de cura")
+    .replace(
+      /A paz que a gente tanto procura não está no futuro, nem longe de nós\. Ela está escondida bem aqui, nas dobras da vida comum\./g,
+      ""
+    )
+    .replace(
+      /os batimentos cardíacos desaceleram, a pressão arterial estabiliza e aquela incômoda sensação de aperto no peito e nó na garganta se dissolve por completo/gi,
+      "a respiração pode ficar um pouco mais lenta. Isso não mede pressão arterial e não faz um aperto no peito desaparecer"
+    );
 
   return out
     .replace(

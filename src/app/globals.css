@@ -763,6 +763,55 @@ body.site-cinema .ad-slot {
   letter-spacing: 0.01em;
 }
 
+.article-byline a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.article-disclaimer {
+  margin: 0 0 1.4rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-gold, #c9a96e);
+  background: rgba(201, 169, 110, 0.08);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.contact-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.article-scope {
+  margin: 0 0 1.5rem;
+  padding: 0.95rem 1.05rem;
+  border-radius: 12px;
+  background: rgba(201, 169, 110, 0.08);
+  border: 1px solid rgba(201, 169, 110, 0.28);
+}
+
+.article-scope p {
+  margin: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1.15rem;
+  padding-left: 1.25rem;
+}
+
+.prose li {
+  margin: 0.45rem 0;
+}
+
+.prose li::marker {
+  color: var(--color-gold, #c9a96e);
+}
+
 .article-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 240px;

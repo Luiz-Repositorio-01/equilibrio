@@ -1,5 +1,6 @@
 import type { Article, ArticleSummary } from "./types";
 import { loadAllArticles } from "./cms";
+import { applyEditorial } from "./editorial";
 
 /**
  * Status "efetivo" para o site público: artigo agendado cuja data/hora já
@@ -29,8 +30,39 @@ async function allEffective(): Promise<Article[]> {
 }
 
 function enhanceContent(html: string): string {
-  // Convert "Dica de Ouro" paragraphs into premium callout blocks
-  return html
+  let out = html.replace(/<p>\s*Artigo\s+\d+\s*:[^<]*<\/p>\s*/gi, "");
+
+  out = out.replace(/<p>\s*\(Nota de Link Interno:[\s\S]*?<\/p>/gi, (match) => {
+    if (/Detox Mental|Excesso de Informação/i.test(match)) {
+      return `<p>Quando a fome chega junto com pressa ou irritação, o próximo passo útil está na mente, não em outra regra alimentar. Leia <a href="/artigos/saude-mental-cuidando-da-mente-em-tempos-de-incerteza-e-ansiedade">como cuidar da mente em tempos de incerteza</a>.</p>`;
+    }
+    if (/Ansiedade Sob Controle/i.test(match)) {
+      return `<p>Postura e tensão emocional andam juntas. Para reconhecer o estresse antes que ele vire só “cansaço normal”, veja <a href="/artigos/estresse-no-dia-a-dia-como-reconhecer-os-sinais-e-agir-antes-que-vire-um-problem">os sinais do estresse no dia a dia</a>.</p>`;
+    }
+    return "";
+  });
+
+  out = out
+    .replace(/e o Chá Antropofágico/gi, "")
+    .replace(
+      /Esse é o tempo exato que o sistema digestivo leva para enviar sinais químicos ao cérebro \(através do hormônio leptina\) avisando que o corpo já está satisfeito\./g,
+      "Vinte minutos é uma pausa prática para perceber saciedade. Não é um cronômetro hormonal igual para todo mundo: sono, o que você comeu antes e o tamanho do prato mudam esse tempo."
+    )
+    .replace(
+      /Para potencializar esse hábito, adote o ritual de consumir uma pequena xícara \(cerca de 50ml\) de um chá morno e digestivo de alecrim com hortelã exatamente 15 minutos antes da sua refeição principal\. Esse composto amargo estimula a produção de suco gástrico e enzimas pancreáticas de forma natural, preparando o estômago para uma digestão leve e eficiente, eliminando aquela moleza pesada que costuma dar logo após o almoço\./g,
+      "Se ajudar a desacelerar, beba água ou um chá morno sem açúcar alguns minutos antes de comer. Isso é um ritual de pausa. Este texto não afirma que alecrim com hortelã acione enzimas, trate digestão ou impeça o sono depois do almoço."
+    )
+    .replace(
+      /agem como verdadeiros remédios naturais\. Eles neutralizam os radicais livres e devolvem às células o ambiente ideal para que elas se regenerem e funcionem perfeitamente\./g,
+      "ajudam a variar o prato. Nenhum alimento isolado funciona como remédio, apaga inflamação ou regenera células sob encomenda."
+    )
+    .replace(
+      /A base da maioria das doenças modernas — desde o cansaço crônico até problemas cardiovasculares e dores articulares — é a inflamação crônica subclínica\./g,
+      "Cansaço, pouca variedade no prato e rotina apertada aparecem juntos com frequência. Isso não autoriza dizer que uma inflamação escondida é a causa da maioria das doenças."
+    )
+    .replace(/massageia e cura os órgãos internos/gi, "relaxa o abdômen, sem promessa de cura");
+
+  return out
     .replace(
       /<p>(?:🌟\s*)?A Dica de Ouro<\/p>\s*<p>([\s\S]*?)<\/p>/gi,
       (_m, body: string) =>
@@ -40,6 +72,14 @@ function enhanceContent(html: string): string {
       /<p>(?:🌟\s*)?A Dica de Ouro<\/p>/gi,
       `<aside class="callout callout--gold"><h3 class="callout__title">A Dica de Ouro</h3>`
     );
+}
+
+/** Versão pública do artigo: limpa resíduos editoriais e acrescenta a aplicação prática. */
+export function presentArticle(article: Article): Article {
+  return applyEditorial({
+    ...article,
+    content: enhanceContent(article.content),
+  });
 }
 
 /** Extrai texto da Dica de Ouro para a lateral do artigo */
@@ -74,10 +114,7 @@ export async function getAllArticleSummaries(): Promise<ArticleSummary[]> {
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   const article = (await allEffective()).find((a) => a.slug === slug);
   if (!article) return null;
-  return {
-    ...article,
-    content: enhanceContent(article.content),
-  };
+  return presentArticle(article);
 }
 
 /** Slugs publicados para pré-geração; artigos novos são gerados sob demanda. */
@@ -186,7 +223,12 @@ export async function searchArticles(query: string): Promise<ArticleSummary[]> {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const terms = q.split(/\s+/).filter(Boolean);
-  const fullBySlug = new Map((await allEffective()).map((a) => [a.slug, a]));
+  const presentedText = new Map(
+    (await allEffective()).map((article) => [
+      article.slug,
+      presentArticle(article).contentText || "",
+    ])
+  );
 
   return (await getArticleSummaries())
     .map((a) => {
@@ -202,7 +244,7 @@ export async function searchArticles(query: string): Promise<ArticleSummary[]> {
         .toLowerCase();
 
       // Also search full content when available
-      const contentHay = (fullBySlug.get(a.slug)?.contentText || "").toLowerCase();
+      const contentHay = (presentedText.get(a.slug) || "").toLowerCase();
       const blob = `${hay} ${contentHay}`;
 
       let score = 0;
@@ -220,11 +262,15 @@ export async function searchArticles(query: string): Promise<ArticleSummary[]> {
 }
 
 export function formatDate(date: string): string {
+  const value = /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T12:00:00-03:00` : date;
+  const parsed = new Date(value);
+  if (Number.isNaN(+parsed)) return date;
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(new Date(date));
+    timeZone: "America/Sao_Paulo",
+  }).format(parsed);
 }
 
 /** Returns a displayable author name, or null when empty/placeholder. */

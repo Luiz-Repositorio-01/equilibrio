@@ -65,8 +65,12 @@ export function CookieConsent() {
       }}
     >
       <p style={{ margin: 0, flex: "1 1 260px", fontSize: "0.9rem", lineHeight: 1.5 }}>
-        Usamos cookies para análise e para exibir anúncios do Google AdSense.
-        Ao continuar, você concorda com nossa{" "}
+        Usamos cookies para análise, quando configurada, e para a publicidade do Google
+        AdSense. Você pode aceitar ou recusar os cookies não essenciais. Leia a{" "}
+        <Link href="/cookies" style={{ color: "#E8C47C", textDecoration: "underline" }}>
+          Política de Cookies
+        </Link>{" "}
+        e a{" "}
         <Link href="/privacidade" style={{ color: "#E8C47C", textDecoration: "underline" }}>
           Política de Privacidade
         </Link>

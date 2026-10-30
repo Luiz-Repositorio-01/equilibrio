@@ -2,6 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, getSession } from "@/lib/auth";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 async function logoutAction() {
   "use server";
   await clearSessionCookie();

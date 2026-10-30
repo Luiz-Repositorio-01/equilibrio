@@ -1,9 +1,11 @@
 import { siteConfig } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/seo";
+import { ContactForm } from "@/components/ui/ContactForm";
 
 export const metadata = buildPageMetadata({
   title: "Contato",
-  description: "Fale com a equipe do SAÚDE INTEGRAL.",
+  description:
+    "Fale com a equipe do Saúde Integral por formulário ou e-mail sobre pauta, correção, parceria ou privacidade.",
   path: "/contato",
 });
 
@@ -12,34 +14,22 @@ export default function ContatoPage() {
     <section className="section">
       <div className="container" style={{ maxWidth: 680 }}>
         <div className="section__eyebrow">Contato</div>
-        <h1 className="section__title">Vamos conversar</h1>
+        <h1 className="section__title">Fale com a equipe</h1>
         <p className="section__desc">
-          Parcerias, sugestões de pauta, imprensa ou dúvidas: envie uma mensagem.
+          Pauta, correção de um texto, parceria, imprensa ou pedido sobre os seus dados.
+          Não há atendimento clínico por este canal.
         </p>
-        <form className="admin-form" style={{ marginTop: "1.5rem" }} action={`mailto:${siteConfig.email}`} method="post" encType="text/plain">
-          <label>
-            Nome
-            <input name="nome" required placeholder="Seu nome" />
-          </label>
-          <label>
-            E-mail
-            <input type="email" name="email" required placeholder="voce@email.com" />
-          </label>
-          <label>
-            Assunto
-            <input name="assunto" required placeholder="Como podemos ajudar?" />
-          </label>
-          <label>
-            Mensagem
-            <textarea name="mensagem" rows={6} required placeholder="Escreva sua mensagem" />
-          </label>
-          <button className="btn btn--primary" type="submit" data-track="cta_click" data-track-label="contato_enviar">
-            Enviar mensagem
-          </button>
-        </form>
-        <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>
-          E-mail direto: <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-        </p>
+        <ContactForm />
+        <div className="prose" style={{ marginTop: "1.5rem" }}>
+          <p>
+            E-mail: <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+          </p>
+          <p>
+            O portal não publica endereço físico, telefone ou CNPJ nesta página. A resposta
+            é feita pelo e-mail informado. Mensagens sobre saúde pessoal não substituem um
+            serviço de urgência.
+          </p>
+        </div>
       </div>
     </section>
   );

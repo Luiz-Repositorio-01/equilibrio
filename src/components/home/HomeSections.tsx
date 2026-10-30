@@ -22,10 +22,10 @@ function coverSrc(article: ArticleSummary, variant: "home" | "featured" | "thumb
 
 export function HomeFeatureRail() {
   const items = [
-    { title: "Conteúdo Profundo", desc: "Textos originais com densidade editorial." },
-    { title: "Abordagem Integrativa", desc: "Corpo, mente e espírito em um só fluxo." },
-    { title: "Atualizações Constantes", desc: "Novas leituras para manter a jornada viva." },
-    { title: "Comunidade Premium", desc: "Um clube de consciência, não um feed." },
+    { title: "Autor identificado", desc: "Cada artigo mostra quem escreveu e quando foi atualizado." },
+    { title: "Três eixos", desc: "Corpo, mente e espírito, cada texto com um assunto só." },
+    { title: "Leitura direta", desc: "Os artigos abrem sem cadastro e sem muro de pagamento." },
+    { title: "Limite claro", desc: "Conteúdo informativo. Não substitui profissional de saúde." },
   ];
   return (
     <div className="cinema-rail">
@@ -77,10 +77,10 @@ const TRUST_ICONS: Record<string, React.ReactNode> = {
 export function HomeTrustStrip() {
   const items = [
     { icon: "pilares", k: "Três pilares", v: "Espiritual, mental e corpo" },
-    { icon: "autoral", k: "Conteúdo autoral", v: "Artigos originais, escritos para você" },
+    { icon: "autoral", k: "Autor visível", v: "Nome e data em cada artigo" },
     { icon: "dia", k: "Pílula do dia", v: "Uma reflexão diária na home" },
     { icon: "cuidado", k: "Leitura serena", v: "Sem pressa e sem excesso" },
-    { icon: "seguro", k: "Sem spam", v: "Só conteúdo que vale a pena" },
+    { icon: "seguro", k: "Sem spam", v: "A newsletter é opcional e o e-mail fica só para isso" },
   ];
   return (
     <div className="trust-strip">
@@ -181,7 +181,9 @@ export function HomeContentHub({
           <aside className="cinema-grid__aside">
             <Reveal variant="right">
               <div className="glass-card">
-                <h3 className="glass-card__title">Mais lidos</h3>
+                <h3 className="glass-card__title">
+                  {popular.some((item) => item.views > 0) ? "Mais lidos" : "Sugestões de leitura"}
+                </h3>
                 <ol className="rank-list">
                   {popular.slice(0, 5).map((a, i) => (
                     <li key={a.slug} className="rank-list__item" style={{ counterReset: "none" }}>
@@ -200,9 +202,9 @@ export function HomeContentHub({
 
             <Reveal variant="right" delay={2}>
               <div className="nl-premium">
-                <h3 className="nl-premium__title">Receba conteúdos exclusivos</h3>
+                <h3 className="nl-premium__title">Receba os próximos textos</h3>
                 <p className="nl-premium__text">
-                  Materiais selecionados, atualizações e acesso antecipado — sem ruído.
+                  Um aviso quando houver artigo novo. Sem spam e com cancelamento pelo mesmo e-mail de contato.
                 </p>
                 <div className="nl-premium__form">
                   <NewsletterForm source="home-cinema" />
@@ -216,65 +218,19 @@ export function HomeContentHub({
   );
 }
 
-export function HomeTestimonials() {
-  const items = [
-    {
-      quote: "Pela primeira vez um portal de bem-estar que parece uma experiência, não um blog.",
-      name: "Mariana S.",
-    },
-    {
-      quote: "A profundidade dos textos e o cuidado visual me fazem voltar toda semana.",
-      name: "Ricardo A.",
-    },
-    {
-      quote: "Sofisticação rara. Dá vontade de ler com calma — e isso muda tudo.",
-      name: "Helena P.",
-    },
-  ];
-  return (
-    <section className="cinema-section testimonials-cinema">
-      <div className="cinema-container">
-        <Reveal>
-          <p className="cinema-eyebrow">Depoimentos</p>
-          <h2 className="cinema-title" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Quem já entrou na jornada
-          </h2>
-        </Reveal>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "1.25rem",
-            marginTop: "2rem",
-          }}
-        >
-          {items.map((t, i) => (
-            <Reveal key={t.name} delay={(i + 1) as 1 | 2 | 3} className="glass-card">
-              <p className="glass-card__text" style={{ fontFamily: "var(--cin-font-serif)", fontSize: "1.15rem", color: "var(--cin-champagne)" }}>
-                “{t.quote}”
-              </p>
-              <p style={{ margin: "1rem 0 0", color: "var(--cin-gold)", fontSize: "0.85rem" }}>{t.name}</p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function HomeFAQ() {
   const faqs = [
     {
-      q: "O conteúdo é original?",
-      a: "Sim. Todos os artigos são autorais, revisados e publicados com cuidado editorial.",
+      q: "Quem escreve os textos?",
+      a: "A equipe editorial identificada em cada artigo e na página Sobre. Os textos são informativos, com data de publicação e de atualização. A política editorial explica o que o portal não promete.",
     },
     {
       q: "Com que frequência há conteúdo novo?",
-      a: "Publicamos novos artigos regularmente sobre corpo, mente e espírito.",
+      a: "Cada artigo mostra a data de publicação e, quando houve revisão, a data de atualização. Não há uma promessa de calendário fixo.",
     },
     {
       q: "Os anúncios atrapalham a leitura?",
-      a: "Não. Os espaços publicitários são posicionados para não interromper o fluxo de leitura.",
+      a: "O código do Google AdSense fica no site para verificação. Blocos manuais só aparecem depois da aprovação e com um espaço real criado no painel, fora do meio da frase.",
     },
     {
       q: "O conteúdo substitui orientação profissional?",

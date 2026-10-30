@@ -58,21 +58,12 @@ export function trackEvent(
   }
 }
 
-export function AnalyticsProvider({
-  children,
-  adsenseClient,
-}: {
-  children: React.ReactNode;
-  /** Client ID from CMS monetization (falls back to env inside). */
-  adsenseClient?: string;
-}) {
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const readingStart = useRef<number>(Date.now());
   const maxScroll = useRef(0);
   const fired = useRef<Set<number>>(new Set());
-  const resolvedAdsense =
-    (adsenseClient || analyticsConfig.adsenseClient || "").trim();
 
   useEffect(() => {
     window.dataLayer = window.dataLayer || [];
@@ -100,19 +91,7 @@ export function AnalyticsProvider({
       window.gtag("config", analyticsConfig.ga4Id, { send_page_view: false });
     }
 
-    if (resolvedAdsense) {
-      const existing = document.querySelector(
-        'script[src*="pagead2.googlesyndication.com"]'
-      );
-      if (!existing) {
-        const s = document.createElement("script");
-        s.async = true;
-        s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${resolvedAdsense}`;
-        s.crossOrigin = "anonymous";
-        document.head.appendChild(s);
-      }
-    }
-  }, [resolvedAdsense]);
+  }, []);
 
   useEffect(() => {
     readingStart.current = Date.now();

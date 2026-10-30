@@ -6,7 +6,6 @@ import { AnalyticsProvider } from "@/components/providers/AnalyticsProvider";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { siteConfig, analyticsConfig } from "@/lib/site";
 import { buildWebsiteJsonLd } from "@/lib/seo";
-import { getMonetization, hydrateMonetization } from "@/lib/monetization";
 import "./globals.css";
 import "./cinematic.css";
 
@@ -66,11 +65,9 @@ export const metadata: Metadata = {
   alternates: { canonical: siteConfig.url, types: { "application/rss+xml": "/rss.xml" } },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = buildWebsiteJsonLd();
-  await hydrateMonetization();
-  const adsense = getMonetization().adsense;
-  const adsenseClient = adsense.clientId || analyticsConfig.adsenseClient || "";
+  const adsenseClient = analyticsConfig.adsenseClient;
 
   return (
     <html lang="pt-BR" data-theme="dark" suppressHydrationWarning>
@@ -82,11 +79,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${display.variable} ${body.variable}`}>
         <ThemeProvider>
           <Suspense fallback={null}>
-            <AnalyticsProvider adsenseClient={adsenseClient}>
+            <AnalyticsProvider>
               <SiteShell>{children}</SiteShell>
             </AnalyticsProvider>
           </Suspense>

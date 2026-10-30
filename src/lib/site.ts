@@ -63,10 +63,13 @@ export const siteConfig = {
   ],
 } as const;
 
+/** Publisher informado pelo Google AdSense para este site. */
+export const ADSENSE_CLIENT_ID = "ca-pub-2415639077379529";
+
 export const analyticsConfig = {
   ga4Id: process.env.NEXT_PUBLIC_GA4_ID || "",
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
-  adsenseClient: process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "",
+  adsenseClient: process.env.NEXT_PUBLIC_ADSENSE_CLIENT || ADSENSE_CLIENT_ID,
   searchConsoleVerification: process.env.NEXT_PUBLIC_GSC_VERIFICATION || "",
 };
 

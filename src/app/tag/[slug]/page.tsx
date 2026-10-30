@@ -17,11 +17,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const tag = decodeURIComponent(slug);
-  return buildPageMetadata({
+  const articles = await getArticlesByTag(tag);
+  const metadata = buildPageMetadata({
     title: `#${tag}`,
-    description: `Artigos com a tag ${tag} no portal SAÚDE INTEGRAL.`,
-    path: `/tag/${slug}`,
+    description: `Artigos publicados com a etiqueta ${tag} no portal SAÚDE INTEGRAL.`,
+    path: `/tag/${encodeURIComponent(tag)}`,
   });
+  if (articles.length < 3) {
+    return { ...metadata, robots: { index: false, follow: true } };
+  }
+  return metadata;
 }
 
 export default async function TagPage({

@@ -34,7 +34,9 @@ export function Footer() {
             <div style={{ display: "grid", gap: "0.45rem", color: "var(--text-muted)" }}>
               <Link href="/sobre">Sobre</Link>
               <Link href="/contato">Contato</Link>
+              <Link href="/editorial">Política editorial</Link>
               <Link href="/privacidade">Privacidade</Link>
+              <Link href="/cookies">Cookies</Link>
               <Link href="/termos">Termos de Uso</Link>
               <Link href="/rss.xml">RSS</Link>
             </div>
@@ -56,7 +58,11 @@ export function Footer() {
             <nav className="footer-bottom__legal" aria-label="Links legais">
               <Link href="/privacidade">Privacidade</Link>
               <span aria-hidden="true">·</span>
+              <Link href="/cookies">Cookies</Link>
+              <span aria-hidden="true">·</span>
               <Link href="/termos">Termos</Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/editorial">Editorial</Link>
               <span aria-hidden="true">·</span>
               <Link href="/contato">Contato</Link>
             </nav>

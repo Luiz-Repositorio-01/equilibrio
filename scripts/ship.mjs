@@ -16,6 +16,9 @@ const SKIP = [
   ".env.local",
   ".env.production",
   "content/data/metrics.json",
+  "content/data/contact-messages.json",
+  "mota-bushcraft-flyer.png",
+  "mota-bushcraft-flyer-v1.png",
 ];
 
 function run(cmd, opts = {}) {

@@ -50,8 +50,9 @@ export default function TermosPage() {
             do <strong>Google AdSense</strong> — e pode conter links para sites de
             terceiros. Não nos responsabilizamos pelo conteúdo, pelas políticas ou pelas
             práticas de sites externos. O uso de cookies para fins de publicidade é
-            descrito na nossa{" "}
-            <a href="/privacidade">Política de Privacidade</a>.
+            descrito na nossa <a href="/privacidade">Política de Privacidade</a> e na{" "}
+            <a href="/cookies">Política de Cookies</a>. A forma como os textos são
+            produzidos está na <a href="/editorial">Política Editorial</a>.
           </p>
 
           <h2>5. Newsletter</h2>

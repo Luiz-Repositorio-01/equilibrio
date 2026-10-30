@@ -2,12 +2,16 @@ import { searchArticles } from "@/lib/articles";
 import { ArticleCard } from "@/components/ui/ArticleCard";
 import { SearchBox } from "@/components/ui/SearchBox";
 import { buildPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = buildPageMetadata({
-  title: "Busca",
-  description: "Busque artigos por título, categoria, tags ou conteúdo.",
-  path: "/busca",
-});
+export const metadata: Metadata = {
+  ...buildPageMetadata({
+    title: "Busca",
+    description: "Busque artigos por título, categoria, tags ou conteúdo.",
+    path: "/busca",
+  }),
+  robots: { index: false, follow: true },
+};
 
 export default async function BuscaPage({
   searchParams,

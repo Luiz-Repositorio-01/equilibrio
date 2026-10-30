@@ -58,7 +58,8 @@ export default function PrivacidadePage() {
           <p>
             Você pode gerenciar ou desativar cookies nas configurações do seu navegador a
             qualquer momento. O banner de consentimento exibido na sua primeira visita
-            permite aceitar ou recusar os cookies não essenciais.
+            permite aceitar ou recusar os cookies não essenciais. O detalhamento está na{" "}
+            <a href="/cookies">Política de Cookies</a>.
           </p>
 
           <h2>4. Google AdSense e publicidade</h2>

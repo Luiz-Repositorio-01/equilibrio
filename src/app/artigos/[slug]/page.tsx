@@ -9,7 +9,6 @@ import {
   getAllSlugs,
   getArticleBySlug,
   getRelatedArticles,
-  resolveAuthor,
 } from "@/lib/articles";
 import { buildArticleJsonLd, buildPageMetadata } from "@/lib/seo";
 import { ReadingProgress } from "@/components/article/ReadingProgress";
@@ -25,6 +24,8 @@ import { CommentsPlaceholder } from "@/components/article/CommentsPlaceholder";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { AffiliateBlock } from "@/components/ui/AffiliateBlock";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
+import { siteConfig } from "@/lib/site";
+import { getAuthorProfile } from "@/lib/authors";
 
 export const revalidate = 300;
 
@@ -57,6 +58,9 @@ export async function generateMetadata({
     image: article.coverImage,
     type: "article",
     keywords: article.seo.keywords,
+    publishedTime: article.publishedAt,
+    modifiedTime: article.updatedAt,
+    authorName: article.author,
   });
 }
 
@@ -72,8 +76,11 @@ export default async function ArticlePage({
   const related = await getRelatedArticles(article, 3);
   const { prev, next } = await getAdjacentArticles(slug);
   const jsonLd = buildArticleJsonLd(article);
-  const author = resolveAuthor(article.author);
+  const profile = getAuthorProfile(article.author);
   const goldTip = extractGoldTip(article.content, article.goldTip);
+  const updated =
+    article.updatedAt &&
+    article.updatedAt.slice(0, 10) !== article.publishedAt.slice(0, 10);
 
   return (
     <>
@@ -97,8 +104,11 @@ export default async function ArticlePage({
               {article.category}
             </Link>
             <span>{formatDate(article.publishedAt)}</span>
+            {updated && <span>Atualizado em {formatDate(article.updatedAt)}</span>}
             <span>{article.readingTime} min de leitura</span>
-            {author && <span>Por {author}</span>}
+            {profile && (
+              <Link href={`/sobre#${profile.slug}`}>Por {profile.name}</Link>
+            )}
           </div>
           <h1>{article.title}</h1>
           {article.subtitle && <p className="subtitle">{article.subtitle}</p>}
@@ -133,9 +143,22 @@ export default async function ArticlePage({
             />
           )}
 
+          <aside className="article-disclaimer">
+            <p>
+              Texto informativo preparado pela equipe do {siteConfig.name}. Não é consulta
+              médica, psicológica ou nutricional. Sintomas, remédios, dieta restritiva e
+              exercício com dor pedem um profissional de saúde.
+            </p>
+          </aside>
+
           <ArticleBody content={article.content} />
 
-          {author && <p className="article-byline">Por {author}</p>}
+          {profile && (
+            <p className="article-byline">
+              Por <Link href={`/sobre#${profile.slug}`}>{profile.name}</Link>
+              {profile.role ? ` · ${profile.role}` : ""}
+            </p>
+          )}
 
           {article.faq?.length > 0 && (
             <section style={{ marginTop: "2.5rem" }}>

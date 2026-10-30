@@ -311,6 +311,40 @@ export function addNewsletterLead(email: string, source = "site") {
   return { ok: true as const, lead };
 }
 
+const MESSAGES_PATH = path.join(CONTENT_DIR, "data", "contact-messages.json");
+const MESSAGES_KEY = "contact-messages";
+
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+};
+
+export async function saveContactMessage(
+  input: Pick<ContactMessage, "name" | "email" | "subject" | "message">
+) {
+  let list = readJson<ContactMessage[]>(MESSAGES_PATH, []);
+  if (blobEnabled()) {
+    const remote = await blobReadJson<ContactMessage[]>(MESSAGES_KEY);
+    if (remote) list = remote;
+  }
+  const item: ContactMessage = {
+    ...input,
+    id: `msg-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  const trimmed = [item, ...list].slice(0, 300);
+  const disk = writeJson(MESSAGES_PATH, trimmed);
+  if (blobEnabled()) {
+    await blobWriteJson(MESSAGES_KEY, trimmed);
+    return { ok: true as const };
+  }
+  return { ok: disk as boolean };
+}
+
 export function getNewsletterLeads() {
   return readJson<NewsletterLead[]>(LEADS_PATH, []);
 }

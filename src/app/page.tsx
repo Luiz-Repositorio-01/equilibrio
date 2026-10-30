@@ -11,7 +11,6 @@ import {
   HomeContentHub,
   HomeFAQ,
   HomeFeatureRail,
-  HomeTestimonials,
   HomeTrustStrip,
   SocialRail,
 } from "@/components/home/HomeSections";
@@ -44,7 +43,6 @@ export default async function HomePage() {
 
       <HomeTrustStrip />
       <HomeContentHub featured={featured} popular={popular} recent={recent} />
-      <HomeTestimonials />
       <HomeFAQ />
     </div>
   );

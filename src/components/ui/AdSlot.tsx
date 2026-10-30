@@ -26,10 +26,15 @@ export async function AdSlot({
   const adsense = monetization.adsense;
   const clientId = adsense.clientId || analyticsConfig.adsenseClient || "";
 
+  // data-ad-slot precisa ser o ID numérico criado no painel do AdSense.
+  // Sem esse ID, anúncios manuais ficam em branco. O script global (anúncios
+  // automáticos) já está no HTML; blocos manuais só entram com unidade real.
+  const unitId = (slot?.code || "").trim();
   const live =
     slot?.enabled !== false &&
     (slot?.provider === "adsense" || !slot) &&
     Boolean(clientId) &&
+    /^\d{8,}$/.test(unitId) &&
     (adsense.status === "ativo" || adsense.status === "aprovado");
   if (!live) return null;
 
@@ -46,7 +51,7 @@ export async function AdSlot({
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client={clientId}
-        data-ad-slot={id}
+        data-ad-slot={unitId}
         data-ad-format="auto"
         data-full-width-responsive="true"
       />

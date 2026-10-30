@@ -13,6 +13,9 @@ export function buildPageMetadata({
   image,
   type = "website",
   keywords,
+  publishedTime,
+  modifiedTime,
+  authorName,
 }: {
   title: string;
   description: string;
@@ -20,6 +23,9 @@ export function buildPageMetadata({
   image?: string;
   type?: "website" | "article";
   keywords?: string[];
+  publishedTime?: string;
+  modifiedTime?: string;
+  authorName?: string;
 }): Metadata {
   const url = absoluteUrl(path);
   const ogImage = absoluteUrl(image || "/assets/hero-bg.png");
@@ -28,7 +34,7 @@ export function buildPageMetadata({
     title,
     description,
     keywords: keywords?.join(", "),
-    authors: [{ name: siteConfig.author }],
+    authors: [{ name: authorName || siteConfig.author }],
     creator: siteConfig.name,
     publisher: siteConfig.name,
     alternates: { canonical: url },
@@ -40,6 +46,13 @@ export function buildPageMetadata({
       description,
       siteName: siteConfig.name,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      ...(type === "article"
+        ? {
+            publishedTime,
+            modifiedTime,
+            authors: authorName ? [authorName] : undefined,
+          }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",

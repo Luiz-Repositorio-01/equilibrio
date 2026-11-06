@@ -63,8 +63,11 @@ export const siteConfig = {
   ],
 } as const;
 
-/** Publisher informado pelo Google AdSense para este site. */
-export const ADSENSE_CLIENT_ID = "ca-pub-2415639077379529";
+/**
+ * Publisher do Google AdSense — deve ser exatamente o que aparece em Conta → Informações da conta
+ * e no snippet de verificação. Se divergir, a verificação do domínio e o ads.txt falham.
+ */
+export const ADSENSE_CLIENT_ID = "ca-pub-3649145180987657";
 
 export const analyticsConfig = {
   ga4Id: process.env.NEXT_PUBLIC_GA4_ID || "",

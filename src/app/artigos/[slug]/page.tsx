@@ -25,6 +25,7 @@ import { AdSlot } from "@/components/ui/AdSlot";
 import { AffiliateBlock } from "@/components/ui/AffiliateBlock";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 import { getAuthorProfile } from "@/lib/authors";
+import { siteConfig } from "@/lib/site";
 import { getIntegrationBoxes, stripPracticeSection } from "@/lib/articleIntegration";
 import { ArticleIntegrationPanel } from "@/components/article/ArticleIntegrationPanel";
 
@@ -148,10 +149,17 @@ export default async function ArticlePage({
           <ArticleBody content={articleBodyHtml} />
 
           {profile && (
-            <p className="article-byline">
-              Por <Link href={`/sobre#${profile.slug}`}>{profile.name}</Link>
-              {profile.role ? ` · ${profile.role}` : ""}
-            </p>
+            <aside className="article-byline" aria-label="Autoria e revisão editorial">
+              <p>
+                Artigo escrito por{" "}
+                <Link href={`/sobre#${profile.slug}`}>{profile.name}</Link>
+                {profile.role ? ` · ${profile.role}` : ""}, revisado pela equipe editorial do{" "}
+                {siteConfig.shortName}.{" "}
+                <Link href="/sobre">Sobre o portal</Link>
+                {" · "}
+                <Link href="/editorial">Política editorial</Link>
+              </p>
+            </aside>
           )}
 
           {article.faq?.length > 0 && (

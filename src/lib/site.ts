@@ -72,7 +72,12 @@ export const ADSENSE_CLIENT_ID = "ca-pub-3649145180987657";
 export const analyticsConfig = {
   ga4Id: process.env.NEXT_PUBLIC_GA4_ID || "",
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
-  adsenseClient: process.env.NEXT_PUBLIC_ADSENSE_CLIENT || ADSENSE_CLIENT_ID,
+  /**
+   * Script do AdSense no layout: usa sempre o ID versionado em `ADSENSE_CLIENT_ID`.
+   * Um `NEXT_PUBLIC_ADSENSE_CLIENT` antigo na Vercel não pode sobrescrever (causava
+   * divergência com ads.txt e falha na verificação de domínio).
+   */
+  adsenseClient: ADSENSE_CLIENT_ID,
   searchConsoleVerification: process.env.NEXT_PUBLIC_GSC_VERIFICATION || "",
 };
 

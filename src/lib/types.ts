@@ -71,6 +71,12 @@ export type Article = {
   audioUrl?: string;
   /** Trecho curto da Dica de Ouro para a lateral */
   goldTip?: string;
+  /** Textos opcionais dos 3 boxes "Na prática" (vazio = automático). */
+  integrationPractice?: {
+    personal?: string;
+    family?: string;
+    professional?: string;
+  };
 };
 
 export type ArticleSummary = Omit<Article, "content" | "contentText" | "toc" | "faq" | "sourceFile">;

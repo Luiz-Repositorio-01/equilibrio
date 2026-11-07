@@ -58,6 +58,21 @@ export function normalizeScheduledFor(value?: string): string | undefined {
   return v;
 }
 
+function normalizeIntegrationPractice(
+  raw?: Article["integrationPractice"]
+): Article["integrationPractice"] | undefined {
+  if (raw === undefined) return undefined;
+  const personal = (raw.personal ?? "").trim();
+  const family = (raw.family ?? "").trim();
+  const professional = (raw.professional ?? "").trim();
+  if (!personal && !family && !professional) return undefined;
+  return {
+    ...(personal ? { personal } : {}),
+    ...(family ? { family } : {}),
+    ...(professional ? { professional } : {}),
+  };
+}
+
 function toSummary(article: Article): ArticleSummary {
   return {
     id: article.id,
@@ -86,6 +101,7 @@ function toSummary(article: Article): ArticleSummary {
     scheduledFor: article.scheduledFor,
     audioUrl: article.audioUrl,
     goldTip: article.goldTip,
+    integrationPractice: article.integrationPractice,
   };
 }
 
@@ -245,6 +261,10 @@ export async function saveArticle(input: Partial<Article> & { title: string; con
     scheduledFor,
     audioUrl: input.audioUrl || existing?.audioUrl || "",
     goldTip: input.goldTip || existing?.goldTip || "",
+    integrationPractice:
+      input.integrationPractice !== undefined
+        ? normalizeIntegrationPractice(input.integrationPractice)
+        : existing?.integrationPractice,
     sourceFile: existing?.sourceFile,
   };
 

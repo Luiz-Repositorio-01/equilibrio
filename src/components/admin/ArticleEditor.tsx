@@ -141,6 +141,9 @@ export function ArticleEditor({ article }: { article?: Article }) {
       .filter(Boolean);
     const seoTitle = String(form.get("seoTitle") || "").trim();
     const seoDescription = String(form.get("seoDescription") || "").trim();
+    const integrationPersonal = String(form.get("integrationPersonal") || "").trim();
+    const integrationFamily = String(form.get("integrationFamily") || "").trim();
+    const integrationProfessional = String(form.get("integrationProfessional") || "").trim();
 
     const payload = {
       slug: article?.slug,
@@ -173,6 +176,11 @@ export function ArticleEditor({ article }: { article?: Article }) {
         : {}),
       audioUrl: String(form.get("audioUrl") || ""),
       goldTip: String(form.get("goldTip") || ""),
+      integrationPractice: {
+        personal: integrationPersonal,
+        family: integrationFamily,
+        professional: integrationProfessional,
+      },
       status: String(form.get("status") || "published"),
       scheduledFor: String(form.get("scheduledFor") || "") || undefined,
       publishedAt: String(form.get("publishedAt") || "") || undefined,
@@ -537,6 +545,40 @@ export function ArticleEditor({ article }: { article?: Article }) {
           />
         </label>
       </div>
+
+      <fieldset style={{ marginTop: "1.25rem", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "1rem" }}>
+        <legend style={{ fontFamily: "var(--font-serif)", padding: "0 0.35rem" }}>
+          Na prática — Vida pessoal / familiar / profissional (opcional)
+        </legend>
+        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: 0 }}>
+          Deixe em branco o que quiser automático (vem dos passos editoriais do artigo). Preencha só
+          os boxes que quiser personalizar.
+        </p>
+        <label>
+          🌱 Vida pessoal
+          <textarea
+            name="integrationPersonal"
+            rows={3}
+            defaultValue={article?.integrationPractice?.personal || ""}
+          />
+        </label>
+        <label>
+          🏡 Vida familiar
+          <textarea
+            name="integrationFamily"
+            rows={3}
+            defaultValue={article?.integrationPractice?.family || ""}
+          />
+        </label>
+        <label>
+          💼 Vida profissional
+          <textarea
+            name="integrationProfessional"
+            rows={3}
+            defaultValue={article?.integrationPractice?.professional || ""}
+          />
+        </label>
+      </fieldset>
 
       {error && (
         <p role="alert" style={{ color: "#b42318" }}>

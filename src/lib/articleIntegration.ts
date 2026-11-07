@@ -53,8 +53,20 @@ function fromPracticeList(html: string): IntegrationBoxes | null {
   };
 }
 
-export function getIntegrationBoxes(article: Article): IntegrationBoxes {
+function autoIntegrationBoxes(article: Article): IntegrationBoxes {
   return OVERRIDES[article.slug] ?? fromPracticeList(article.content) ?? FALLBACK;
+}
+
+/** Manual por campo no artigo; o que faltar vem da editoria automática (ou fallback). */
+export function getIntegrationBoxes(article: Article): IntegrationBoxes {
+  const auto = autoIntegrationBoxes(article);
+  const custom = article.integrationPractice;
+  if (!custom) return auto;
+  return {
+    personal: custom.personal?.trim() || auto.personal,
+    family: custom.family?.trim() || auto.family,
+    professional: custom.professional?.trim() || auto.professional,
+  };
 }
 
 export function integrationCards(boxes: IntegrationBoxes) {

@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
         destination: "/artigos/o-templo-fisico-como-a-postura-diaria-afeta-sua-energia-vital",
         permanent: true,
       },
+      {
+        // URL antiga de termos (já não existe): consolida em /termos.
+        source: "/aviso-legal",
+        destination: "/termos",
+        permanent: true,
+      },
+      {
+        // Páginas de autor antigas: a biografia da equipe fica em /sobre.
+        source: "/autor/:slug",
+        destination: "/sobre",
+        permanent: true,
+      },
     ];
   },
 };

@@ -14,7 +14,7 @@ ARTIGOS_DIR = Path(r"D:\AURYX\08 SITES\equilibrio\artigos")
 OUT_DIR = Path(r"D:\AURYX\08 SITES\equilibrio\content\articles")
 INDEX_PATH = Path(r"D:\AURYX\08 SITES\equilibrio\content\index.json")
 AUTHOR = "Antonio Paulo Tavares Pereira"
-SITE = "EQUILÍBRIO INTEGRAL"
+SITE = "PORTAL SAÚDE INTEGRAL"
 
 CORPO_KEYWORDS = [
     "corpo", "postura", "nutri", "sono", "hidrata", "imunolog", "intestino",
@@ -334,7 +334,7 @@ def main() -> None:
             "seo": {
                 "title": f"{title} | {SITE}",
                 "description": excerpt[:160],
-                "keywords": tags + [cat_name.lower(), "equilibrio integral", "bem-estar"],
+                "keywords": tags + [cat_name.lower(), "portal saúde integral", "bem-estar"],
             },
             "toc": toc,
             "sourceFile": f.name,

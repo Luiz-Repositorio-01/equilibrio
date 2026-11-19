@@ -267,13 +267,7 @@ export function HomeFAQ() {
 export function SocialRail() {
   return (
     <aside className="social-rail" aria-label="Redes sociais">
-      <a className="social-rail__link" href="https://instagram.com/equilibriointegral" target="_blank" rel="noreferrer" aria-label="Instagram">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-      </a>
-      <a className="social-rail__link" href="https://youtube.com/@equilibriointegral" target="_blank" rel="noreferrer" aria-label="YouTube">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 8a4 4 0 014-4h8a4 4 0 014 4v8a4 4 0 01-4 4H8a4 4 0 01-4-4V8z"/><path d="M10 9.5l5 2.5-5 2.5V9.5z" fill="currentColor"/></svg>
-      </a>
-      <a className="social-rail__link" href="mailto:contato@equilibriointegral.com.br" aria-label="E-mail">
+      <a className="social-rail__link" href="mailto:portalsaudeintegral38@gmail.com" aria-label="E-mail">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 7 9-7"/></svg>
       </a>
     </aside>

@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="admin-shell">
       <aside className="admin-aside">
         <div className="logo" style={{ marginBottom: "1.2rem", fontSize: "1rem" }}>
-          CMS <em>Equilíbrio</em>
+          CMS <em>Portal Saúde Integral</em>
         </div>
         <nav>
           <Link href="/admin">Painel</Link>

@@ -7,6 +7,7 @@ import {
   formatDate,
   getAdjacentArticles,
   getAllSlugs,
+  getAllTags,
   getArticleBySlug,
   getRelatedArticles,
 } from "@/lib/articles";
@@ -80,6 +81,8 @@ export default async function ArticlePage({
   const jsonLd = buildArticleJsonLd(article);
   const profile = getAuthorProfile(article.author);
   const goldTip = extractGoldTip(article.content, article.goldTip);
+  // Só linka tags com 3+ artigos (mesmo critério de indexação/sitemap da página de tag).
+  const linkableTags = (await getAllTags()).filter((t) => t.count >= 3).map((t) => t.tag);
   const integration = getIntegrationBoxes(article);
   const articleBodyHtml = stripPracticeSection(article.content);
   const updated =
@@ -190,6 +193,7 @@ export default async function ArticlePage({
 
         <ArticleSidebar
           tags={article.tags}
+          linkableTags={linkableTags}
           category={article.category}
           categorySlug={article.categorySlug}
           goldTip={goldTip}

@@ -1,9 +1,9 @@
 ---
-description: Sempre publicar Equilíbrio Integral no GitHub + Vercel após alterações
+description: Sempre publicar Portal Saúde Integral no GitHub + Vercel após alterações
 alwaysApply: true
 ---
 
-# Auto-ship — EQUILÍBRIO INTEGRAL
+# Auto-ship — PORTAL SAÚDE INTEGRAL
 
 Sempre que finalizar uma alteração pedida pela usuária neste repositório (`equilibrio`):
 

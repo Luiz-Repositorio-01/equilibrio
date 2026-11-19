@@ -5,6 +5,8 @@ import { AdSlot } from "@/components/ui/AdSlot";
 
 type ArticleSidebarProps = {
   tags: string[];
+  /** Tags com conteúdo suficiente para ter página indexável; as demais aparecem sem link. */
+  linkableTags: string[];
   category: string;
   categorySlug: string;
   goldTip?: string | null;
@@ -14,6 +16,7 @@ type ArticleSidebarProps = {
 
 export function ArticleSidebar({
   tags,
+  linkableTags,
   category,
   categorySlug,
   goldTip,
@@ -52,16 +55,22 @@ export function ArticleSidebar({
       <div className="article-sidebar__card">
         <h2 className="article-sidebar__title">Etiquetas</h2>
         <div className="tag-cloud">
-          {tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/tag/${encodeURIComponent(tag)}`}
-              className="tag"
-              data-track="tag_click"
-            >
-              #{tag}
-            </Link>
-          ))}
+          {tags.map((tag) =>
+            linkableTags.includes(tag) ? (
+              <Link
+                key={tag}
+                href={`/tag/${encodeURIComponent(tag)}`}
+                className="tag"
+                data-track="tag_click"
+              >
+                #{tag}
+              </Link>
+            ) : (
+              <span key={tag} className="tag">
+                #{tag}
+              </span>
+            )
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-# EQUILÍBRIO INTEGRAL — Portal Premium
+# PORTAL SAÚDE INTEGRAL — Portal Premium
 
 Portal **Next.js 15** de conteúdo, SEO, monetização e CMS.
 
@@ -26,7 +26,7 @@ Para recuperação de senha por e-mail, configure também `RESEND_API_KEY`.
 ## Deploy automático (GitHub → Vercel)
 
 **Produção atual:** [https://equilibrio-one-nu.vercel.app](https://equilibrio-one-nu.vercel.app)  
-Projeto Vercel: `auryx1/equilibrio` · GitHub já conectado · Framework Next.js na raiz (`vercel.json`).
+Projeto Vercel: `equilibrio` · GitHub já conectado · Framework Next.js na raiz (`vercel.json`).
 
 Fluxo: **push em `main` → Production**; **PR → Preview**.
 

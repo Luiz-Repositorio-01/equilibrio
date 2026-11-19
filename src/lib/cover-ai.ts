@@ -622,7 +622,7 @@ async function generateArtCoverPackage(
       motif: brief.motif,
       generatedAt: new Date().toISOString(),
       seed: brief.seed,
-      engine: "equilibrio-cover-ai-v1",
+      engine: "portalsaudeintegral-cover-ai-v1",
     },
   };
 }
@@ -767,7 +767,7 @@ function buildPhotoQueries(
   return [...new Set(list)];
 }
 
-const FETCH_UA = "Mozilla/5.0 (compatible; equilibrio-cover-bot/1.0)";
+const FETCH_UA = "Mozilla/5.0 (compatible; portalsaudeintegral-cover-bot/1.0)";
 
 /** Pexels (requer PEXELS_API_KEY) → candidatos normalizados. */
 async function fetchPexelsCandidates(
@@ -1023,7 +1023,7 @@ async function generatePhotoCoverPackage(
         motif: brief.motif,
         generatedAt: new Date().toISOString(),
         seed: brief.seed,
-        engine: "equilibrio-cover-photo-remote-v1",
+        engine: "portalsaudeintegral-cover-photo-remote-v1",
         credit: chosen.credit,
         creditUrl: chosen.creditUrl,
         source: chosen.source,
@@ -1103,7 +1103,7 @@ async function generatePhotoCoverPackage(
       motif: brief.motif,
       generatedAt: new Date().toISOString(),
       seed: brief.seed,
-      engine: "equilibrio-cover-photo-v1",
+      engine: "portalsaudeintegral-cover-photo-v1",
       credit: chosen.credit,
       creditUrl: chosen.creditUrl,
       source: chosen.source,

@@ -69,6 +69,9 @@ export const siteConfig = {
  */
 export const ADSENSE_CLIENT_ID = "ca-pub-3649145180987657";
 
+/** Deve coincidir com `public/ads.txt` (google.com, pub-…, DIRECT, f08c47fec0942fa0). */
+export const ADSENSE_ADS_TXT_LINE = `google.com, ${ADSENSE_CLIENT_ID.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0`;
+
 export const analyticsConfig = {
   ga4Id: process.env.NEXT_PUBLIC_GA4_ID || "",
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",

@@ -3,13 +3,27 @@ import { getArticleSummaries, getAllCategories } from "@/lib/articles";
 import { ArticleCard } from "@/components/ui/ArticleCard";
 import { CategoryPills } from "@/components/ui/CategoryPills";
 import { buildPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = buildPageMetadata({
-  title: "Artigos",
-  description:
-    "Todos os artigos do portal SAÚDE INTEGRAL sobre corpo, mente, espiritualidade e bem-estar.",
-  path: "/artigos",
-});
+const LISTING_DESCRIPTION =
+  "Todos os artigos do portal SAÚDE INTEGRAL sobre corpo, mente, espiritualidade e bem-estar.";
+
+// Cada página da listagem tem artigos diferentes, então cada uma aponta para si mesma
+// (canonical próprio). Só a primeira usa /artigos sem parâmetro.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}): Promise<Metadata> {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam || 1));
+  return buildPageMetadata({
+    title: page > 1 ? `Artigos — página ${page}` : "Artigos",
+    description: LISTING_DESCRIPTION,
+    path: page > 1 ? `/artigos?page=${page}` : "/artigos",
+  });
+}
 
 export const revalidate = 300;
 
@@ -21,6 +35,8 @@ export default async function ArtigosPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
+  // ?page=1 é a mesma página de /artigos: consolida.
+  if (pageParam === "1") permanentRedirect("/artigos");
   const page = Math.max(1, Number(pageParam || 1));
   const all = await getArticleSummaries();
   const categories = await getAllCategories();
@@ -36,7 +52,7 @@ export default async function ArtigosPage({
             <div className="section__eyebrow">Biblioteca</div>
             <h1 className="section__title">Todos os artigos</h1>
             <p className="section__desc">
-              {all.length} conteúdos publicados sobre equilíbrio integral.
+              {all.length} conteúdos publicados sobre saúde integral.
             </p>
           </div>
         </div>
@@ -50,7 +66,7 @@ export default async function ArtigosPage({
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
             <Link
               key={p}
-              href={`/artigos?page=${p}`}
+              href={p === 1 ? "/artigos" : `/artigos?page=${p}`}
               className={`btn ${p === current ? "btn--primary" : "btn--outline"}`}
               aria-current={p === current ? "page" : undefined}
             >

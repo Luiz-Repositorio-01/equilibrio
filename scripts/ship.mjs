@@ -43,7 +43,7 @@ const msg =
   process.argv.slice(2).join(" ").trim() ||
   `chore: publish site ${new Date().toISOString().slice(0, 16).replace("T", " ")}`;
 
-console.log("=== EQUILÍBRIO INTEGRAL — ship automático ===");
+console.log("=== PORTAL SAÚDE INTEGRAL — ship automático ===");
 
 run("git add -A");
 

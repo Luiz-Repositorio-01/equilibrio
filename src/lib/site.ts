@@ -14,7 +14,7 @@ export const siteConfig = {
   authorPhoto: "/assets/brand/author-photo.jpg",
   authorBio:
     "Antonio Paulo criou o Portal Saúde Integral a partir de uma busca pessoal por mais equilíbrio, leveza e paz interior no meio da correria do cotidiano. Sem a pretensão de ser um especialista ou mestre espiritual, sua missão é atuar como um facilitador: pesquisar, organizar e compartilhar práticas acessíveis sobre espiritualidade, bem-estar e presença plena.",
-  email: "contato@equilibriointegral.com.br",
+  email: "portalsaudeintegral38@gmail.com",
   themeColor: "#0D4A4A",
   logo: "/assets/brand/logo-saude-integral.png",
   mission:
@@ -39,11 +39,8 @@ export const siteConfig = {
       description: "Buscamos mudanças reais no dia a dia: hábitos, mente e conexão interior.",
     },
   ],
-  social: {
-    instagram: "https://instagram.com/equilibriointegral",
-    youtube: "https://youtube.com/@equilibriointegral",
-    linkedin: "https://linkedin.com/company/equilibriointegral",
-  },
+  // Redes sociais ainda não existem: preencha aqui quando os perfis forem criados.
+  social: {} as Record<string, string>,
   categories: [
     {
       name: "Saúde do Corpo",

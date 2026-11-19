@@ -153,7 +153,9 @@ export function buildWebsiteJsonLd() {
           url: absoluteUrl("/assets/favicon.svg"),
         },
         description: siteConfig.description,
-        sameAs: Object.values(siteConfig.social),
+        ...(Object.values(siteConfig.social).length
+          ? { sameAs: Object.values(siteConfig.social) }
+          : {}),
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer service",
